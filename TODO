@@ -1,0 +1,15 @@
+WMF viewer
+1. Reimplement multiple DC support.
+2. Improve scaling of patterns/line widths/etc with results of snippeting with cairo.
+3. Fix 'Symbol' font problem.
+4. Implement Mitter/Join for lines
+
+Interface
+1. Put cairo context into scrollable area
+2. Backport cdr_explorer infoline features
+3. Add (how?) ability to show names for variables and format them in the right way
+   (for example colors have to be displayed as 'Color #FF8800', not just '16746496'.
+
+pywmf module
+1. Implement generation/saving part OR better
+2. Merge with pyemf

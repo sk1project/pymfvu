@@ -1,0 +1,39 @@
+pywmfvu is a part of the sK1project.
+It was made as a research tool to improve WMF importer of UniConvertor
+The project site is http://www.sk1project.org/
+
+This project was started as a subproject of pyemfvu project
+(yet another research tool to make EMF importer for UniConvertor).
+pyemf module made by Rob McMullen was quickly changed to pywmf
+and I hope we will be able to merge them to provide unified module
+to work with WMF and EMF.
+
+Coding:
+While this code is just a quick hack to research WMF format,
+it seems to play the majority of WMFs better than any[1] other free implementation.
+See TODO to find out what is not implemented/finished yet.
+
+Using:
+Run it and open file(s) with File->Open (^O) or just supply filenames to open in command line.
+Slide the ruller to the right side, it will 'play' metafile.
+
+View->Hexdump (^D) toggles hexdump display
+View->Alpha   (^T) toggles 'transparency' by switching from rgba(r,g,b,1) to rgba(r,g,b,0.5)
+View->Records (^R) opens window with a list of MF records in this file.
+
+File->Close   (^C) closes file on current tab and exit if there is no more opened files.
+File->Quit    (^Q) quit the pywmfvu
+File->SaveAs  (^S) saves to SVG file (you have to slide the ruller to the end or just displayed part will be saved)
+
+
+Happy hacking!
+
+-- 
+Valek Filippov
+Aug, 2007
+
+[1]
+I compared with OO.org 2.2.1, libwmf-0.2.8.4 (wmf2x and wmfloader for gdkpixbuf), inkscape-0.45.1,
+karbon14 1.6.3, ImageMagic-6.3.4, Skencil-0.6.17.
+I have no idea how to check wine and batik.
+I didn't check win32 versions of OO.org or inkscape.
