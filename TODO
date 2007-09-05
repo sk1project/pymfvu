@@ -1,8 +1,6 @@
 WMF viewer
-1. Reimplement multiple DC support.
-2. Improve scaling of patterns/line widths/etc with results of snippeting with cairo.
-3. Fix 'Symbol' font problem.
-4. Implement Mitter/Join for lines
+1. Implement locale reencoding.
+2. Implement all ROP2.
 
 Interface
 1. Put cairo context into scrollable area

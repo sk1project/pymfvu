@@ -26,29 +26,31 @@ def CreatePalette(ctx,page,i):
     for j in range(numofclr):
         clr = wmfdoc.color()
         clr.r,clr.g,clr.b = data[j*4],data[j*4+1],data[j*4+2]
-        eo.palette[j]=clr
+        page.palette[j]=clr
     page.wmfobjs[h]=eo
     print i,'Palette. Handle: ',h
 
 def CreatePen(ctx,page,i):
     fgclr = wmfdoc.color()
-    h,fgclr.r,fgclr.g,fgclr.b,width,style = page.cmds[i].args
+    h,fgclr.r,fgclr.g,fgclr.b,flag,width,style = page.cmds[i].args
     eo = wmfdoc.wmfobj()
     eo.type = 1
     eo.clr = fgclr
     eo.width = width
     eo.style = style
+    eo.flag = flag
     page.wmfobjs[h]=eo
-    print i,'Pen: ',fgclr.r,fgclr.g,fgclr.b,' Handle: ',h
+    print i,'Pen: ',fgclr.r,fgclr.g,fgclr.b,'Style: ',style,' Handle: ',h
 
 def CreateBrushIndirect(ctx,page,i):
     bgclr = wmfdoc.color()
-    h,bgclr.r,bgclr.g,bgclr.b,lbStyle,lbHatch = page.cmds[i].args
+    h,bgclr.r,bgclr.g,bgclr.b,flag,lbStyle,lbHatch = page.cmds[i].args
     eo = wmfdoc.wmfobj()
     eo.type = 2
     eo.clr = bgclr
     eo.style = lbStyle
     eo.hatch = lbHatch
+    eo.flag = flag    
     page.wmfobjs[h]=eo
     print i,'Brush: ',bgclr.r,bgclr.g,bgclr.b,lbStyle,' Handle: ',h
 
@@ -66,7 +68,7 @@ def CreateFontIndirect(ctx,page,i):
     eo = wmfdoc.wmfobj()
     eo.type = 3
     size = page.cmds[i].args[1][0]
-    if size <0:
+    if size < 0:
         size = -size
     if size == 0:
         size = 12

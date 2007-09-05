@@ -21,8 +21,9 @@ import wmfdraw
 import pango
 import struct
 import math
+import cairo
 
-symbol2 = {
+symbol = {
   0x00:'\x00\x00', 0x01:'\x01\x00', 0x02:'\x02\x00', 0x03:'\x03\x00',
   0x04:'\x04\x00', 0x05:'\x05\x00', 0x06:'\x06\x00', 0x07:'\x07\x00',
   0x08:'\x08\x00', 0x09:'\x09\x00', 0x0a:'\x0a\x00', 0x0b:'\x0b\x00',
@@ -88,93 +89,23 @@ symbol2 = {
   0xf8:'\xf8\xf8', 0xf9:'\xf9\xf8', 0xfa:'\xfa\xf8', 0xfb:'\xfb\xf8',
   0xfc:'\xfc\xf8', 0xfd:'\xfd\xf8', 0xfe:'\xfe\xf8', 0xff:'\xc7\x02'}
 
-symbol = {
-  0x00:'\x00\x00', 0x01:'\x00\x01', 0x02:'\x00\x02', 0x03:'\x00\x03',
-  0x04:'\x00\x04', 0x05:'\x00\x05', 0x06:'\x00\x06', 0x07:'\x00\x07',
-  0x08:'\x00\x08', 0x09:'\x00\x09', 0x0a:'\x00\x0a', 0x0b:'\x00\x0b',
-  0x0c:'\x00\x0c', 0x0d:'\x00\x0d', 0x0e:'\x00\x0e', 0x0f:'\x00\x0f',
-  0x10:'\x00\x10', 0x11:'\x00\x11', 0x12:'\x00\x12', 0x13:'\x00\x13',
-  0x14:'\x00\x14', 0x15:'\x00\x15', 0x16:'\x00\x16', 0x17:'\x00\x17',
-  0x18:'\x00\x18', 0x19:'\x00\x19', 0x1a:'\x00\x1a', 0x1b:'\x00\x1b',
-  0x1c:'\x00\x1c', 0x1d:'\x00\x1d', 0x1e:'\x00\x1e', 0x1f:'\x00\x1f',
-  0x20:'\x00\x20', 0x21:'\x00\x21', 0x22:'\x22\x00', 0x23:'\x00\x23',
-  0x24:'\x22\x03', 0x25:'\x00\x25', 0x26:'\x00\x26', 0x27:'\x22\x0d',
-  0x28:'\x00\x28', 0x29:'\x00\x29', 0x2a:'\x22\x17', 0x2b:'\x00\x2b',
-  0x2c:'\x00\x2c', 0x2d:'\x22\x12', 0x2e:'\x00\x2e', 0x2f:'\x00\x2f',
-  0x30:'\x00\x30', 0x31:'\x00\x31', 0x32:'\x00\x32', 0x33:'\x00\x33',
-  0x34:'\x00\x34', 0x35:'\x00\x35', 0x36:'\x00\x36', 0x37:'\x00\x37',
-  0x38:'\x00\x38', 0x39:'\x00\x39', 0x3a:'\x00\x3a', 0x3b:'\x00\x3b',
-  0x3c:'\x00\x3c', 0x3d:'\x00\x3d', 0x3e:'\x00\x3e', 0x3f:'\x00\x3f',
-  0x40:'\x22\x45', 0x41:'\x03\x91', 0x42:'\x03\x92', 0x43:'\x03\xa7',
-  0x44:'\x03\x94', 0x45:'\x03\x95', 0x46:'\x03\xa6', 0x47:'\x03\x93',
-  0x48:'\x03\x97', 0x49:'\x03\x99', 0x4a:'\x03\xd1', 0x4b:'\x03\x9a',
-  0x4c:'\x03\x9b', 0x4d:'\x03\x9c', 0x4e:'\x03\x9d', 0x4f:'\x03\x9f',
-  0x50:'\x03\xa0', 0x51:'\x03\x98', 0x52:'\x03\xa1', 0x53:'\x03\xa3',
-  0x54:'\x03\xa4', 0x55:'\x03\xa5', 0x56:'\x03\xc2', 0x57:'\x03\xa9',
-  0x58:'\x03\x9e', 0x59:'\x03\xa8', 0x5a:'\x03\x96', 0x5b:'\x00\x5b',
-  0x5c:'\x22\x34', 0x5d:'\x00\x5d', 0x5e:'\x22\xa5', 0x5f:'\x00\x5f',
-  0x60:'\xf8\xe5', 0x61:'\x03\xb1', 0x62:'\x03\xb2', 0x63:'\x03\xc7',
-  0x64:'\x03\xb4', 0x65:'\x03\xb5', 0x66:'\x03\xc6', 0x67:'\x03\xb3',
-  0x68:'\x03\xb7', 0x69:'\x03\xb9', 0x6a:'\x03\xd5', 0x6b:'\x03\xba',
-  0x6c:'\x03\xbb', 0x6d:'\x03\xbc', 0x6e:'\x03\xbd', 0x6f:'\x03\xbf',
-  0x70:'\x03\xc0', 0x71:'\x03\xb8', 0x72:'\x03\xc1', 0x73:'\x03\xc3',
-  0x74:'\x03\xc4', 0x75:'\x03\xc5', 0x76:'\x03\xd6', 0x77:'\x03\xc9',
-  0x78:'\x03\xbe', 0x79:'\x03\xc8', 0x7a:'\x03\xb6', 0x7b:'\x00\x7b',
-  0x7c:'\x00\x7c', 0x7d:'\x00\x7d', 0x7e:'\x22\x3c', 0x7f:'\x00\x7f',
-  0x80:'\x00\x80', 0x81:'\x00\x81', 0x82:'\x00\x82', 0x83:'\x00\x83',
-  0x84:'\x00\x84', 0x85:'\x00\x85', 0x86:'\x00\x86', 0x87:'\x00\x87',
-  0x88:'\x00\x88', 0x89:'\x00\x89', 0x8a:'\x00\x8a', 0x8b:'\x00\x8b',
-  0x8c:'\x00\x8c', 0x8d:'\x00\x8d', 0x8e:'\x00\x8e', 0x8f:'\x00\x8f',
-  0x90:'\x00\x90', 0x91:'\x00\x91', 0x92:'\x00\x92', 0x93:'\x00\x93',
-  0x94:'\x00\x94', 0x95:'\x00\x95', 0x96:'\x00\x96', 0x97:'\x00\x97',
-  0x98:'\x00\x98', 0x99:'\x00\x99', 0x9a:'\x00\x9a', 0x9b:'\x00\x9b',
-  0x9c:'\x00\x9c', 0x9d:'\x00\x9d', 0x9e:'\x00\x9e', 0x9f:'\x00\x9f',
-  0xa0:'\x00\x00', 0xa1:'\x03\xd2', 0xa2:'\x20\x32', 0xa3:'\x22\x64',
-  0xa4:'\x20\x44', 0xa5:'\x22\x1e', 0xa6:'\x01\x92', 0xa7:'\x26\x63',
-  0xa8:'\x26\x66', 0xa9:'\x26\x65', 0xaa:'\x26\x60', 0xab:'\x21\x94',
-  0xac:'\x21\x90', 0xad:'\x21\x91', 0xae:'\x21\x92', 0xaf:'\x21\x93',
-  0xb0:'\x00\xb0', 0xa1:'\x00\xb1', 0xb2:'\x20\x33', 0xb3:'\x22\x65',
-  0xb4:'\x00\xd7', 0xb5:'\x22\x1d', 0xb6:'\x22\x02', 0xb7:'\x20\x22',
-  0xb8:'\x00\xf7', 0xb9:'\x22\x60', 0xba:'\x22\x61', 0xbb:'\x22\x48',
-  0xbc:'\x20\x26', 0xbd:'\xf8\xe6', 0xbe:'\xf8\xe7', 0xbf:'\x21\xb5',
-  0xc0:'\x21\x35', 0xc1:'\x21\x11', 0xc2:'\x21\x1c', 0xc3:'\x21\x18',
-  0xc4:'\x22\x97', 0xc5:'\x22\x95', 0xc6:'\x22\x05', 0xc7:'\x22\x29',
-  0xc8:'\x22\x2a', 0xc9:'\x22\x83', 0xca:'\x22\x87', 0xcb:'\x22\x84',
-  0xcc:'\x22\x82', 0xcd:'\x22\x86', 0xce:'\x22\x08', 0xcf:'\x22\x09',
-  0xd0:'\x22\x20', 0xd1:'\x22\x07', 0xd2:'\x00\xae', 0xd3:'\x00\xa9',
-  0xd4:'\x21\x22', 0xd5:'\x22\x0f', 0xd6:'\x22\x1a', 0xd7:'\x22\xc5',
-  0xd8:'\x00\xac', 0xd9:'\x22\x27', 0xda:'\x22\x28', 0xdb:'\x21\xd4',
-  0xdc:'\x21\xd0', 0xdd:'\x21\xd1', 0xde:'\x21\xd2', 0xdf:'\x21\xd3',
-  0xe0:'\x22\xc4', 0xe1:'\x23\x29', 0xe2:'\xf8\xe8', 0xe3:'\xf8\xe9',
-  0xe4:'\xf8\xea', 0xe5:'\x22\x11', 0xe6:'\xf8\xeb', 0xe7:'\xf8\xec',
-  0xe8:'\xf8\xed', 0xe9:'\xf8\xee', 0xea:'\xf8\xef', 0xeb:'\xf8\xf0',
-  0xec:'\xf8\xf1', 0xed:'\xf8\xf2', 0xee:'\xf8\xf3', 0xef:'\xf8\xf4',
-  0xf0:'\xf8\xff', 0xf1:'\x23\x2a', 0xf2:'\x22\x2b', 0xf3:'\x23\x20',
-  0xf4:'\xf8\xf5', 0xf5:'\x23\x21', 0xf6:'\xf8\xf6', 0xf7:'\xf8\xf7',
-  0xf8:'\xf8\xf8', 0xf9:'\xf8\xf9', 0xfa:'\xf8\xfa', 0xfb:'\xf8\xfb',
-  0xfc:'\xf8\xfc', 0xfd:'\xf8\xfd', 0xfe:'\xf8\xfe', 0xff:'\x02\xc7'}
 
 def symbol_to_utf(text):
     str = ''
     for i in range(len(text)):
-        str+=symbol2[ord(text[i])]
+        str+=symbol[ord(text[i])]
     return str
 
 def TextOut(ctx,page,i):
     ExtTextOut(ctx,page,i)
-
+    
 txtalign = {0:0, 1:0, 6:1, 2:2,		8:0,9:0,14:1,10:2,		24:0,25:0,30:1,26:2}
 cpupdate = {1:1,9:1,25:1}
     
 def ExtTextOut(ctx,page,i):
+
     x,y,text,dx = page.cmds[i].args
     lentext = len(text)
-    if cpupdate.has_key(page.txtalign):
-        x,y = ctx.get_current_point()
-    else:
-        x = wmfdraw.convx(page,x)
-        y = wmfdraw.convy(page,y)
-        
     alignh = txtalign[page.txtalign]
     eonum = page.curfnt
     eo = page.wmfobjs[eonum]
@@ -187,20 +118,18 @@ def ExtTextOut(ctx,page,i):
         itl = 'Italic '
     FONT = eo.font+' '+bld+itl+str(size/1.5)
     fdesc = pango.FontDescription(FONT)
-
-    layout = ctx.create_layout()
-    layout.set_font_description(fdesc)
-    cw = 0
     if eo.font == 'Symbol':
-        print 'Symbol! ------ SOME GLYPHS CAN BE MISSED! --------------------------------------------------'
-    
-    layout.set_text(text)
-    xsize,ysize = layout.get_size()
-    print 'Xsize,Ysize:',xsize,ysize
+        text=unicode(symbol_to_utf(text),'utf-16')
+
+    if cpupdate.has_key(page.txtalign):
+        x,y = ctx.get_current_point()
+        ytr = y/1.5
+    else:
+        x,y = wmfdraw.convcoords(page,ctx,x,y)
+        ytr = y - size*1./page.height
+    print 'X,Y: ',x,y
     dxsum = 0
-    xsize/=1000.
     if len(dx)>3: ## there is shifts
-        dxsum=0
         dxoffs = 0
         dxlist = []
         if lentext/2. != lentext/2:
@@ -208,13 +137,27 @@ def ExtTextOut(ctx,page,i):
         for i in range(lentext-1):
             [d] = struct.unpack('h',dx[i*2+dxoffs:i*2+2+dxoffs])
             dxlist.append(d)
-            dxsum+=d
+            dxsum=dxsum+d
         dxlist.append(0) ## to simplify my life later
+
+
+    ctx.save()
+    if page.width != 1 and page.height !=1:
+        matrix = cairo.Matrix(1./page.width,0,0,1./page.height,0,0)##x,ytr)
+        ctx.transform(matrix)
+    layout = ctx.create_layout()
+    layout.set_font_description(fdesc)
+
+    layout.set_text(text)
+    xsize,ysize = layout.get_size()
+    xsize=xsize/1000./page.width
+    ysize=ysize/1000./page.height
+    if len(dx)>3: ## there is shifts
         t = text[lentext-1]
         layout.set_text(t)
         x0,y0 = layout.get_size()
         xsize=x0/1000.+dxsum
-        
+    
     if alignh == 0:
         xs = x
     if alignh == 1:
@@ -222,17 +165,30 @@ def ExtTextOut(ctx,page,i):
     if alignh == 2:
         xs = x-xsize
     if page.txtalign<8: ##top
-        ys = y + ysize/1000.
+        ys = y + ysize
     if page.txtalign>7 and page.txtalign<24: ##bottom
         ys = y 
     if page.txtalign>23: ##baseline
-        ys = y - ysize/1250.
- 
+        ys = y - ysize/1.25
+    
+    if cpupdate.has_key(page.txtalign):
+        xe = xs+xsize
+        ye = ys+ysize
+    else:
+        xe = xs+xsize*page.width
+        ye = ys+ysize*page.height
+    
+    print 'Xs,Ys: ',xs,ys,'Xe,Ye: ',xe,ye
+
+    if page.width != 1 and page.height !=1:
+        ctx.translate(xs*page.width, ys*page.height)
+
     ctx.save()
-    ctx.translate(xs,ys)
-    if eo.escape !=0:
+    if eo.escape !=0:  ## change it with transform
+        ctx.translate(xs,ys)
         ctx.rotate(-eo.escape*math.pi/1800) ## rotation angle is set in 10th of degree
-    ctx.translate(-xs,-ys)
+        ctx.translate(-xs,-ys)
+        
     if page.bkmode == 2:
         r = page.bkcolor.r
         g = page.bkcolor.g
@@ -240,21 +196,21 @@ def ExtTextOut(ctx,page,i):
         ctx.save()
         ctx.set_source_rgba(r/255.,g/255.,b/255.,1)
         ctx.move_to(xs,ys)
-        ctx.line_to(xs+xsize,ys)
-        ctx.line_to(xs+xsize,ys+ysize/1000.)
-        ctx.line_to(xs,ys+ysize/1000.)
+        ctx.line_to(xe,ys)
+        ctx.line_to(xe,ye)
+        ctx.line_to(xs,ye)
         ctx.close_path()
         ctx.fill()
         ctx.restore()
     ctx.set_source_rgba(page.txtclr.r/255.,page.txtclr.g/255.,page.txtclr.b/255.,1)
     if eo.under == 1:
-        ctx.move_to(xs,ys+ysize/1050.)
-        ctx.line_to(xs+xsize,ys+ysize/1050.)
+        ctx.move_to(xs,ys+ysize*page.height/1.05)
+        ctx.line_to(xe,ys+ysize*page.height/1.05)
         ctx.set_line_width(size*0.06)
         ctx.stroke()
     if eo.strike == 1:
-        ctx.move_to(xs,ys+ysize/2000.)
-        ctx.line_to(xs+xsize,ys+ysize/2000.)
+        ctx.move_to(xs,ys+ysize*page.height/2.)
+        ctx.line_to(xe,ys+ysize*page.height/2.)
         ctx.set_line_width(size*0.06)
         ctx.stroke()
     ctx.move_to(xs,ys)
@@ -267,9 +223,9 @@ def ExtTextOut(ctx,page,i):
             ctx.save()
             if eo.orient!=0:
                 ctx.translate(xs+x0/2000.,ys+y0/2000.)
-                ctx.rotate(-eo.orient*math.pi/1800) ## rotation angle is set in 10th of degree
+                ctx.rotate(-eo.orient*math.pi/1800.) ## rotation angle is set in 10th of degree
                 ctx.translate(-xs-x0/2000.,-ys-y0/2000.)
-                xup = x0*math.sin(eo.orient*math.pi/1800)/1000+y0*math.cos(eo.orient*math.pi/1800)/1000
+                xup = x0*math.sin(eo.orient*math.pi/1800.)/1000.+y0*math.cos(eo.orient*math.pi/1800.)/1000.
             ctx.show_layout(layout)
             if dxsum >0:
                 xs=xs+dxlist[i]*1.
@@ -282,4 +238,6 @@ def ExtTextOut(ctx,page,i):
         layout.set_text(text)
         ctx.show_layout(layout)
     ctx.restore()
-##    print i,'ExtTextOut. x: %u y: %u Text: %s'%(x,y,text),'Align:',xsize/1000,'Font: ',FONT,eo.weight,'dX: ',len(dx)
+    
+    ctx.restore()
+##    print i,'ExtTextOut. x: %u y: %u'%(x,y),text,'Align:',xsize/1000,'Font: ',FONT,eo.weight,'Wx/Wy:',page.DCs[page.curdc].Wx,page.DCs[page.curdc].Wy

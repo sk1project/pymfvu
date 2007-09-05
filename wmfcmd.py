@@ -171,8 +171,9 @@ def CreatePenIndirect(emf,num,page):
     lbColor = emf.records[num].lopnColor
     width = emf.records[num].lopnWidth
     style = emf.records[num].lopnStyle
-    b = lbColor>>16
-    g = (lbColor&0xFF00)>>8
+    f =  (lbColor>>24)&0xFF    
+    b = (lbColor>>16)&0xFF
+    g = (lbColor>>8)&0xFF
     r = lbColor&0xFF
     i = 0
     while i<page.maxobj:
@@ -180,7 +181,7 @@ def CreatePenIndirect(emf,num,page):
             data = page.wmfobjs[i]
             i+=1
         except:
-            cmd.args = i,r,g,b,width*1.,style
+            cmd.args = i,r,g,b,f,width*1.,style
             page.wmfobjs[i] = 0
             page.cmds.append(cmd)
             break
@@ -222,8 +223,9 @@ def CreateBrushIndirect(emf,num,page):
     lbStyle = emf.records[num].lbStyle
     lbColor = emf.records[num].lbColor
     lbHatch = emf.records[num].lbHatch
-    b = lbColor>>16
-    g = (lbColor&0xFF00)>>8
+    f =  (lbColor>>24)&0xFF
+    b = (lbColor>>16)&0xFF
+    g = (lbColor>>8)&0xFF
     r = lbColor&0xFF
     i = 0
     while i<page.maxobj:
@@ -231,7 +233,7 @@ def CreateBrushIndirect(emf,num,page):
             data = page.wmfobjs[i]
             i+=1
         except:
-            cmd.args = i,r,g,b,lbStyle,lbHatch
+            cmd.args = i,r,g,b,f,lbStyle,lbHatch
             page.wmfobjs[i] = 0
             page.cmds.append(cmd)
             break
@@ -264,7 +266,7 @@ def TextOut(emf,num,page):
     text = emf.records[num].data[2:2+count]
     [y] = struct.unpack('>h',emf.records[num].data[2+count:4+count])
     [x] = struct.unpack('>h',emf.records[num].data[4+count:6+count])
-    cmd.args = x,y,text
+    cmd.args = x,y,text,''
     page.cmds.append(cmd)
     
 def ExtTextOut(emf,num,page):
@@ -301,10 +303,11 @@ def SetTextColor(emf,num,page):
     cmd = wmfdoc.cmd()
     cmd.type = 521
     crColor = emf.records[num].crColor
+    f =  (crColor>>24)&0xFF
     b = (crColor>>16)&0xFF
-    g = (crColor&0xFF00)>>8
+    g = (crColor>>8)&0xFF
     r = crColor&0xFF
-    cmd.args = r,g,b
+    cmd.args = r,g,b,f
     page.cmds.append(cmd)
     
 def SetTextAlign(emf,num,page):
@@ -354,10 +357,11 @@ def SetBKColor(emf,num,page):
     cmd = wmfdoc.cmd()
     cmd.type = 513
     bkColor = emf.records[num].bkColor
+    f =  (bkColor>>24)&0xFF
     b = (bkColor>>16)&0xFF
-    g = (bkColor&0xFF00)>>8
+    g = (bkColor>>8)&0xFF
     r = bkColor&0xFF
-    cmd.args = r,g,b
+    cmd.args = r,g,b,f
     page.cmds.append(cmd)
 
 def SetMapMode(emf,num,page):
@@ -381,7 +385,13 @@ def SelectPalette(emf,num,page):
 def Header(emf,num,page):
     page.maxobj = emf.records[num].mtNoObjects
  
-mr_cmds  = {4:Header,
+def Aldus_Header(emf,num,page):
+    cmd = wmfdoc.cmd()
+    cmd.type = 1
+    cmd.args =  emf.records[num].values
+    page.cmds.append(cmd)
+
+mr_cmds  = {1:Aldus_Header,4:Header,
 ## FIXME! Commented out is 'not implemented yet'.
             30:SaveDC, 295:RestoreDC, ##332:ResetDc, 
             

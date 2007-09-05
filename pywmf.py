@@ -1089,14 +1089,14 @@ class _MR:
     class _ARC(_MR_UNKNOWN):
         mr_id = 0x0817
         mr_typedef=[
-                ('h','rclBox_left'),
-                ('h','rclBox_top'),
-                ('h','rclBox_right'),
-                ('h','rclBox_bottom'),
-                ('h','ptlStart_x'),
-                ('h','ptlStart_y'),
+                ('h','ptlEnd_y'),
                 ('h','ptlEnd_x'),
-                ('h','ptlEnd_y')
+                ('h','ptlStart_y'),
+                ('h','ptlStart_x'),
+                ('h','rclBox_bottom'),                
+                ('h','rclBox_right'),
+                ('h','rclBox_top'),
+                ('h','rclBox_left')
                 ]
         
         def __init__(self,left=0,top=0,right=0,bottom=0,xstart=0,ystart=0,xend=0,yend=0):

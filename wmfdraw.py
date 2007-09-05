@@ -32,6 +32,7 @@ import wmffigs
 def render(self,ctx,page):
     ctx.set_source_rgba(0,0,0,1)
     ctx.set_line_cap(1)
+    ctx.set_line_join(1)
     page.txtclr.r,page.txtclr.g,page.txtclr.b = 0,0,0
     page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = 255.,255.,255.
     page.txtalign = 0
@@ -49,25 +50,37 @@ def render(self,ctx,page):
             print i,'^^^^^^^^^^^^^^^^^^^^^UNSUPPORTED: ',wmfcmd.mr_ids[page.cmds[i].type],page.cmds[i].args
 
 
+def shift(x,sz):
+  return  0.5-(x*sz)%1
 
-def convx(page,x):
-    xr = x-page.DCs[page.curdc].x##+page.DCs[page.curdc].Wx
-    print 'CurDC: ',page.curdc
-    return xr
+def convcoords(page,ctx,x,y):
+    pdc = page.DCs[page.curdc]
+    xr = (x-pdc.x)*1.*page.VPx/pdc.Wx + page.VPOx
+    yr = (y-pdc.y)*1.*page.VPy/pdc.Wy + page.VPOy
+##    xr = (x-pdc.x)*1./pdc.Wx + page.VPOx
+##    yr = (y-pdc.y)*1./pdc.Wy + page.VPOy
 
-def convy(page,y):
-    yr = y-page.DCs[page.curdc].y##+page.DCs[page.curdc].Wy
-    return yr
-  
+    szx = 1.*page.scale*page.width*page.zoom
+    dx = shift(xr,szx)/szx
+    szy = 1.*page.scale*page.height*page.zoom
+    dy = shift(yr,szy)/szy 
+    return xr+dx,yr+dy
+
+def convlen(page,ctx,dx,dy):
+    pass
+    
 def SetBKMode(ctx,page,i):
     page.bkmode = page.cmds[i].args[0]
     print 'SetBKMode: ',page.bkmode
 
 def SetBKColor(ctx,page,i):
-    r,g,b = page.cmds[i].args
-    page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = r,g,b
+    r,g,b,flag = page.cmds[i].args
+    if flag !=1:
+        page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = r,g,b
+    else:
+        clr = page.wmfobjs[curpal].palette[r]  ## FIXME1 It has to be 2 bytes index made of R and G.
+        page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = clr.r,clr.g,clr.b
     print 'SetBKColor: %x %x %x'%(r,g,b)
-
     
 def SelectObject(ctx,page,i):
     otype = {1:'Pen',2:'Brush',3:'Font',4:'Palette'}
@@ -86,26 +99,17 @@ def SelectObject(ctx,page,i):
         print i,'!!!!!!!!!! Select Unexist Obj: %x !!!!!!!!!!!!!!'%eonum
 
 def DeleteObject(ctx,page,i):
-##    don = len(page.wmfobjs)
-##    del page.wmfobjs[don-1]
     print i,'Delete Obj: ',page.cmds[i].args
 
 def SelectPalette(ctx,page,i):
     page.curpal = page.cmds[i].args
-    print i,'Selecte Palette: ',page.curpal
+    print i,'Select Palette: ',page.curpal
 
 def SelectClipRegion(ctx,page,i):
-#    ctx.clip()
     print i,'Select clip region'
 
 def IntersectClipRect(ctx,page,i):
     b,r,t,l = page.cmds[i].args
-##    ctx.translate(-l,-t)
-##    ctx.line_to(l,b)
-##    ctx.line_to(r,b)
-##    ctx.line_to(r,t)
-##    ctx.close_path()
-##    ctx.clip()
     print i,'Intersect clip rect:',l,b,r,t
     
 def SetWindowOrgEx(ctx,page,i):
@@ -119,27 +123,6 @@ def SetWindowExtEx(ctx,page,i):
     page.DCs[page.curdc].Wx = x
     page.DCs[page.curdc].Wy = y
     print i,'WinExtEx: ',page.cmds[i].args
-    
-def _SetWindow(ctx,page):
-    pw = page.DCs[page.curdc].Wx - page.DCs[page.curdc].x
-    fx =1.
-    if pw <0:
-#        page.width= -page.width
-        fx = -1
-    ph = page.DCs[page.curdc].Wy - page.DCs[page.curdc].y
-    fy =1.
-    if ph<0:
-#        page.height= -page.height
-        fy = -1.
-    offx = -page.DCs[page.curdc].x
-    offy = -page.DCs[page.curdc].y
-    matrix = cairo.Matrix(fx,0,0,fy,0,0)
-    ctx.set_matrix(matrix)
-    ctx.scale(page.zoom,page.zoom)
-    ctx.translate(offx,offy)    
-    print 'Wx/Wy: %u %u  x/y: %u %u fx/fy: %u %u'%(page.DCs[page.curdc].Wx,page.DCs[page.curdc].Wy,page.DCs[page.curdc].x,page.DCs[page.curdc].y,fx,fy)
-    print 'CurDC:',page.curdc
-
     
 def SetViewportExtEx(ctx,page,i):
     x,y = page.cmds[i].args
@@ -157,12 +140,19 @@ def SaveDC(ctx,page,i):
     ctx.save()
     dc = wmfdoc.DC()
     page.DCs.append(dc)
+    page.DCs[page.curdc+1].VPOx =  page.DCs[page.curdc].VPOx
+    page.DCs[page.curdc+1].VPOy = page.DCs[page.curdc].VPOy 
+    page.DCs[page.curdc+1].VPx = page.DCs[page.curdc].VPx 
+    page.DCs[page.curdc+1].VPy = page.DCs[page.curdc].VPy 
+    page.DCs[page.curdc+1].Wx = page.DCs[page.curdc].Wx 
+    page.DCs[page.curdc+1].Wy = page.DCs[page.curdc].Wy 
+    page.DCs[page.curdc+1].x = page.DCs[page.curdc].x 
+    page.DCs[page.curdc+1].y = page.DCs[page.curdc].y 
     page.curdc+=1
     print i,'Save ctx. DC:',page.curdc
 
 def RestoreDC(ctx,page,i):
     ctx.restore()
-    _SetWindow(ctx,page)
     page.DCs.pop()
     page.curdc-=1
     print i,'Restore ctx. DC:',page.curdc
@@ -176,12 +166,9 @@ darr = (array.array('b','\xff'+'\x00'*7),
             array.array('b','\x81\x42\x24\x18\x18\x24\x42\x81'))
 
 def FillPath(ctx,page,i):
-## horiz 0 -  data = array.array('b','\xff\x00\x00\x00\x00\x00\x00\x00') #horlines
-## vertc 1 |  data = array.array('b','\x80'*8) 			  #vertlines
-## fdiag 2 \  data = array.array('b','\x01\x02\x04\x08\x10\x20\x40\x80')   #diaglines \
-## bdiag 3 / data = array.array('b','\x80\x40\x20\x10\x08\x04\x02\x01')   #diaglines /
-## cross 4 + data = array.array('b','\xFF'+'\x80'*7)   # +++
-## dcros 5 x data = array.array('b','\x81\x42\x24\x18\x18\x24\x42\x81')   # xxx
+    ctx.save()
+    matrix = cairo.Matrix(1./page.width,0,0,1./page.height,0,0)
+    ctx.transform(matrix)
     eonum = page.curbg
     if eonum == 0x80000005 or page.wmfobjs[eonum].style == 1: ## bkmode is temporary before hatch/bitmap brushes
         print i,'NO FILL'
@@ -219,10 +206,12 @@ def FillPath(ctx,page,i):
                 ctx.set_source_rgba(r/255.,g/255.,b/255.,page.alpha)
                 ctx.fill_preserve()
             StrokePathPreserve(ctx,page,i)
-
-            r = eo.clr.r
-            g = eo.clr.g
-            b = eo.clr.b
+            if eo.flag !=1:
+                r,g,b = eo.clr.r,eo.clr.g,eo.clr.b
+            else:
+                clr = page.palette[eo.clr.r]  ## FIXME! have to be 2 byte made of R and G.
+                r,g,b = clr.r,clr.g,clr.b
+                
             ctx.set_source_rgba(r/255.,g/255.,b/255.,page.alpha)
 
             if eo.style != 3:
@@ -246,13 +235,21 @@ def FillPath(ctx,page,i):
                 ctx.paint()
                 ctx.restore()
         else:
-            r = eo.clr.r
-            g = eo.clr.g
-            b = eo.clr.b
+            if eo.flag !=1:
+                r,g,b = eo.clr.r,eo.clr.g,eo.clr.b
+            else:
+                clr = page.palette[eo.clr.r]  ## FIXME! have to be 2 byte made of R and G.
+                r,g,b = ord(clr.r),ord(clr.g),ord(clr.b)
+
             ctx.set_source_rgba(r/255.,g/255.,b/255.,page.alpha)
             ctx.fill_preserve()
         print i,'Fill %x'%eonum,'St/Ht:',eo.style,eo.hatch
- 
+    ctx.restore()
+    
+capjoin = {0:1,1:2,2:0}
+cap = {0:'Flat',1:'Round',2:'Square'}
+join = {0:'Miter',1:'Round',2:'Bevel'}
+
 def StrokePath(ctx,page,i):
     eonum = page.curfg
     if eonum == 0x80000008 or page.wmfobjs[eonum].style == 5:
@@ -261,12 +258,23 @@ def StrokePath(ctx,page,i):
         ctx.stroke()
     else:
         eo = page.wmfobjs[eonum]
-        if eo.style > 5:
-            eo.style = 0
-        if eo.width <2:
-            eo.width = 1./page.zoom/page.scale
-        ctx.set_line_width(eo.width)
-        if eo.style > 0:
+        style = eo.style&0xF
+        if eo.width < 2.1 or (style > 0 and style < 5):
+            eo.width = 1./(page.scale*page.zoom)
+        matrix = cairo.Matrix(1./page.width,0,0,1./page.height,0,0)
+        ctx.transform(matrix)
+        ctx.set_line_width(eo.width)    
+
+        lcap,ljoin = 0,0
+        if (eo.style&0xF00)>>8 <3:
+            lcap = capjoin[(eo.style&0xF00)>>8]
+        if (eo.style&0xF000)>>12 < 3:
+            ljoin = capjoin[(eo.style&0xF000)>>12]
+        ctx.set_line_cap(lcap)
+        ctx.set_line_join(ljoin)
+        if style > 5:
+            style = 0
+        if style > 0 and page.bkmode == 2:
             ctx.set_dash(dashes[0],len(dashes[0])/2)
             r = page.bkcolor.r
             g = page.bkcolor.g
@@ -274,13 +282,16 @@ def StrokePath(ctx,page,i):
             ctx.set_source_rgba(r/255.,g/255.,b/255.,1)
             ctx.stroke_preserve()
 
-        ctx.set_dash(dashes[eo.style],len(dashes[eo.style])/2)
-        r = eo.clr.r
-        g = eo.clr.g
-        b = eo.clr.b
+        ctx.set_dash(dashes[style],len(dashes[style])/2)
+        if eo.flag !=1:
+            r,g,b = eo.clr.r,eo.clr.g,eo.clr.b
+        else:
+            clr = page.palette[eo.clr.r]  ## FIXME! have to be 2 byte made of R and G.
+            r,g,b = ord(clr.r),ord(clr.g),ord(clr.b)
         ctx.set_source_rgba(r/255.,g/255.,b/255.,1.)
         ctx.stroke()
-        print i,'Stroke %x'%eonum,r,g,b,eo.width*100, page.zoom,page.scale
+        ctx.restore()
+        print i,'Stroke %x'%eonum,r,g,b,eo.width*100,'Cap: ',cap[lcap],join[ljoin], 'Ratio:',page.scale
 
 def CloseFigure(ctx,page,i):
     ctx.close_path()
@@ -292,7 +303,12 @@ def StrokeAndFillPath(ctx,page,i):
     print i,'Fill&Stroke'
     
 def SetTextColor(ctx,page,i):
-    page.txtclr.r,page.txtclr.g,page.txtclr.b = page.cmds[i].args
+    r,g,b,flag = page.cmds[i].args
+    if flag !=1:
+        page.txtclr.r,page.txtclr.g,page.txtclr.b = r,g,b
+    else:
+        clr = page.palette[r]  ## FIXME! have to be 2 byte made of R and G.
+        page.txtclr.r,page.txtclr.g,page.txtclr.b = ord(r),ord(g),ord(b)
     print i,'Text Color: ',page.txtclr.r,page.txtclr.g,page.txtclr.b
 
 def SetTextAlign(ctx,page,i):
@@ -300,10 +316,12 @@ def SetTextAlign(ctx,page,i):
     print i,'Text Align: ',page.txtalign
     
 def StretchDIBits(ctx,page,i):
+    ctx.save()
+    matrix = cairo.Matrix(1./page.width,0,0,1./page.height,0,0)
+    ctx.transform(matrix)
     y = page.cmds[i].args[0]				##xDest
     x = page.cmds[i].args[1]				##yDest
-    x = convx(page,x)
-    y = convy(page,y)
+    x,y = convcoords(page,ctx,x,y)
     dx = page.cmds[i].args[2]				##cxSrc
     dy = page.cmds[i].args[3]				##cySrc
     bmpsize = struct.pack('<I',page.cmds[i].args[4])	##nSize-header+14
@@ -341,9 +359,11 @@ def StretchDIBits(ctx,page,i):
         ctx.set_source_pixbuf(pixbuf,0,0)
         ctx.paint()
     ctx.restore()
+    ctx.restore()
   
 def SetPolyfillMode(ctx,page,i):
     ctx.set_fill_rule(page.cmds[i].args)
+    print 'Polyfillmode: ',page.cmds[i].args,page.cmds[i].args*2
     
 def StrokePathPreserve(ctx,page,i):
     eonum = page.curfg
@@ -353,9 +373,12 @@ def StrokePathPreserve(ctx,page,i):
         ctx.stroke()
     else:
         eo = page.wmfobjs[eonum]
-        r = eo.clr.r
-        g = eo.clr.g
-        b = eo.clr.b
+        if eo.flag !=1:
+                r,g,b = eo.clr.r,eo.clr.g,eo.clr.b
+        else:
+            clr = page.palette[eo.clr.r]  ## FIXME! have to be 2 byte made of R and G.
+            r,g,b = ord(clr.r),ord(clr.g),ord(clr.b)
+
         if eo.style > 5:
             eo.style = 0
         ctx.set_dash(dashes[eo.style],len(dashes[eo.style])/2)
