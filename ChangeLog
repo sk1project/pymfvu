@@ -4,6 +4,7 @@
     * pywmf.py: Improved EOF checking
     * wmffigs.py, emfdraw.py: Fixed roundrect for 'intentionaly wrong' cases, some code clean-up
     * emf*: added license statement
+    * pyemf.py: added while Rob will make a release with load_mem function
 
 09-04-2007  Valek Filippov  <frob@df.ru>
 
