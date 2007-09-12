@@ -1,3 +1,22 @@
+# This program was made as part of the sk1project activity to improve UniConvertor
+# See http://www.sk1project.org
+#
+# Copyright (C) 2007,	Valek Filippov (frob@df.ru)
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of version 3 or later of the GNU General Public
+# License as published by the Free Software Foundation.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
+# USA
+#
+
 import math
 import gtk
 import pango
@@ -434,6 +453,14 @@ def RoundRect(ctx,page,i):
     y1 = convy(page,y1)
     x2 = convx(page,x2)
     y2 = convy(page,y2)
+    if x1 > x2:
+        x = x1
+        x1 = x2
+        x2 = x
+    if y1 > y2:
+        x = y1
+        y1 = y2
+        y2 = x
     ctx.move_to(x2-cx/2.,y1)
     ## here elliptical arc to next point (x2,y1+cy/2) xc = x2-cx/2., yc = y1+cy/2.  90 0
     xc = x2-cx/2.

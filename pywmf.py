@@ -26,7 +26,7 @@ import struct
 from cStringIO import StringIO
 import copy
 
-__version__ = "0.0.1"
+__version__ = "0.0.3"
 __author__ = "Valek Filippov (on the base of Rob McMullen pyemf code)"
 __url__ = "http://www.sk1project.org"
 __description__ = "Python Windows Metafile Library"
@@ -1213,7 +1213,7 @@ class WMF:
 
     def loadmem(self,membuf=None):
         """
-Read an existing buffer with EMF file.  If any records exist in the current
+Read an existing buffer with WMF file.  If any records exist in the current
 object, they will be overwritten by the records from this buffer.
 
 @param membuf: buffer to load
@@ -1226,7 +1226,7 @@ object, they will be overwritten by the records from this buffer.
 
     def load(self,filename=None):
         """
-Read an existing EMF file.  If any records exist in the current
+Read an existing WMF file.  If any records exist in the current
 object, they will be overwritten by the records from this file.
 
 @param filename: filename to load
@@ -1246,6 +1246,10 @@ object, they will be overwritten by the records from this file.
         self.placeable = 0
         nSize = 24
         rdFunction = 4 # False id for Header
+        filehandler.seek(0,2)
+        self.fsize = filehandler.tell()
+        print 'File size: ',self.fsize 
+        filehandler.seek(0)
         data = ord(filehandler.read(1))
         if data == 0xD7: ##Aldus placeable WMF
             filehandler.seek(28)
@@ -1271,15 +1275,12 @@ object, they will be overwritten by the records from this file.
             e=_mrmap[rdFunction]()
             e.unserialize(filehandler,rdFunction,nSize)
             self.records.append(e)
-##        print 'Header added'
         self._unserialize(filehandler)
             
 
     def _unserialize(self,fh):
-        print 'mtSize:',self.mtSize
         try:
             while self.mtSize*2 > fh.tell()+6:
-                print 'Cur.position: ',fh.tell()
                 data=fh.read(6)
                 count=len(data)
                 if count>0:
@@ -1289,14 +1290,14 @@ object, they will be overwritten by the records from this file.
                         e=_mrmap[rdFunction]()
                     else:
                         e=_MR_UNKNOWN()
-
                     e.unserialize(fh,rdFunction,nSize)
                     self.records.append(e)
                     
                     if self.verbose:
                         print "Unserializing: ",
                         print e
-                
+                if self.fsize < fh.tell()+6:
+                    break
         except EOFError:
             pass
 

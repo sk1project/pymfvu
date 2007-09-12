@@ -1,4 +1,12 @@
-09-04-2007  Valek Filippov <frob@df.ru>
+09-12-2007  Valek Filippov  <frob@df.ru>
+
+    Version 0.0.4
+    * pywmf.py: Improved EOF checking
+    * wmffigs.py, emfdraw.py: Fixed roundrect for 'intentionaly wrong' cases, some code clean-up
+    * emf*: added license statement
+
+09-04-2007  Valek Filippov  <frob@df.ru>
+
     * Version 0.0.3.
       Merged with pyemfvu and renamed to pymfvu.
       Implemented line cap/join.
@@ -6,8 +14,10 @@
       Hexdump is switched off by default.
       Reimplemented WindowOrg/Ext.
   
-08-18-2007  Valek Filippov <frob@df.ru>
+08-18-2007  Valek Filippov  <frob@df.ru>
+
     * wmftext.py: Fixed Symbol font translation.
     
-08-17-2007  Valek Filippov <frob@df.ru>
+08-17-2007  Valek Filippov  <frob@df.ru>
+
     0.0.1 version has been published.
