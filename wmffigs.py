@@ -66,18 +66,16 @@ def ArcTo(ctx,page,i):
     xe,ye = wmfdraw.convcoords(page,ctx,xe,ye)
     xs,ys = wmfdraw.convcoords(page,ctx,xs,ys)
     xc,yc = wmfdraw.convcoords(page,ctx,(l+r)/2.,(t+b)/2.)
-    dx = (r-l)*1./page.DCs[page.curdc].Wx
-    dy = (b-t)*1./page.DCs[page.curdc].Wy
+    dx = math.fabs((r-l)*1./page.DCs[page.curdc].Wx)
+    dy = math.fabs((b-t)*1./page.DCs[page.curdc].Wy)
     ang1 = math.atan2((ys-yc),(xs-xc))
     ang2 = math.atan2((ye-yc),(xe-xc))
-    x1 = math.cos(ang1)
-    y1 = math.sin(ang1)
     ctx.save()
     m = cairo.Matrix(dx/2.,0,0,dy/2.,xc,yc)
     ctx.transform(m)
     ctx.arc_negative(0.,0.,1.,ang1,ang2)
     ctx.restore()
-    print i,'Arc: c(%u %u) ang(%u %u)'%(xc,yc,180*ang1/math.pi,180*ang2/math.pi)
+    print i,'Arc: c(%u %u) ang(%u %u) dx %f dy %f'%(xc,yc,180*ang1/math.pi,180*ang2/math.pi,dx,dy)
     
 def Arc(ctx,page,i):
     ctx.save()    

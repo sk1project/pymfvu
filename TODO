@@ -9,5 +9,5 @@ Interface
    (for example colors have to be displayed as 'Color #FF8800', not just '16746496'.
 
 pywmf module
-1. Implement generation/saving part OR better 2nd item.
+1. Implement generation/saving part OR better do 2nd.
 2. Merge with pyemf

@@ -388,8 +388,8 @@ def Arc(ctx,page,i):
     l,t,r,b,xs,ys,xe,ye = page.cmds[i].args
     xc = convx(page,(l+r)/2.)
     yc = convy(page,(t+b)/2.)
-    dx = r-l
-    dy = b-t
+    dx = math.fabs(r-l)
+    dy = math.fabs(b-t)
     ang1 = math.atan2((ys-yc),(xs-xc))
     ang2 = math.atan2((ye-yc),(xe-xc))
     x1 = math.cos(ang1)
@@ -406,8 +406,8 @@ def ArcTo(ctx,page,i):
     l,t,r,b,xs,ys,xe,ye = page.cmds[i].args
     xc = convx(page,(l+r)/2.)
     yc = convy(page,(t+b)/2.)
-    dx = r-l
-    dy = b-t
+    dx = math.fabs(r-l)
+    dy = math.fabs(b-t)
     ang1 = math.atan2((ys-yc),(xs-xc))
     ang2 = math.atan2((ye-yc),(xe-xc))
     ctx.move_to(xc,yc)
