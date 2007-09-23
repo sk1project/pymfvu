@@ -46,10 +46,15 @@ emr_ids = {0:'Unknown', 1:'Header',2:'Polybezier',3:'Polygone',4:'Polyline',5:'P
                  115:'SetLayout',116:'TransparentBlt',117:'Reserved_117',118:'GradientFill',119:'SetLinkedUFI',
                  120:'SetTextJustification',121:'ColorMatchToTargetW',122:'CreateColorSpaceW'}
 
+def IntersectClipRect(emf,num,page):
+    cmd = emfdoc.cmd()
+    cmd.type = 30
+    cmd.args = emf.records[num].values
+    page.cmds.append(cmd)
+
 def Polybezier(emf,num,page):
     cmd = emfdoc.cmd()
     cmd.type = 2
-##    x,y = emf.records[num].values[0],emf.records[num].values[3]
     cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
 

@@ -110,6 +110,14 @@ def SelectClipRegion(ctx,page,i):
 
 def IntersectClipRect(ctx,page,i):
     b,r,t,l = page.cmds[i].args
+    l,t = convcoords(page,ctx,l,t)
+    r,b = convcoords(page,ctx,r,b)
+    ctx.move_to(l,t)
+    ctx.line_to(l,b)
+    ctx.line_to(r,b)
+    ctx.line_to(r,t)
+    ctx.close_path()
+    ctx.clip()
     print i,'Intersect clip rect:',l,b,r,t
     
 def SetWindowOrgEx(ctx,page,i):

@@ -25,6 +25,7 @@ import pangocairo
 import struct
 import emfdoc
 import emfcmd
+import wmfdraw
 
 ## horiz 0 -
 ## vertc 1 |
@@ -38,6 +39,7 @@ def render(self,ctx,page):
                         27:MoveTo,54:LineTo,55:ArcTo,42:Ellipse,43:Rectangle,44:RoundRect,45:Arc,46:Chord,47:Pie,\
                         84:ExtTextOutW,82:ExtCreateFontIndirectW,22:SetTextAlign,24:SetTextColor,\
                         9:SetWindowExtEx,10:SetWindowOrgEx,11:SetViewportExtEx,12:SetViewportOrgEx,\
+                        30:wmfdraw.IntersectClipRect,\
                         33:SaveDC,34:RestoreDC,35:SetWorldTransform,36:ModifyWorldTransform,\
                         37:SelectObject,38:CreatePen,39:CreateBrushIndirect,40:DeleteObject,95:ExtCreatePen,\
                         59:BeginPath,60:EndPath,61:CloseFigure,62:FillPath, 63:StrokeAndFillPath,64:StrokePath,67:SelectClipPath,\

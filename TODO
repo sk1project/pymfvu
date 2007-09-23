@@ -1,6 +1,10 @@
 WMF viewer
 1. Implement locale reencoding.
 2. Implement all ROP2.
+3. Implement ExcludeClipRect
+4. Implement Region operations 
+   (CreateRegion, SelectClipRegion, OffsetClipRgn, FillRegion, FrameRegion,
+    InvertRegion, PaintRegion)
 
 Interface
 1. Put cairo context into scrollable area

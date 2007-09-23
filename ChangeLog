@@ -1,3 +1,7 @@
+09-23-2007  Valek Filippov  <frob@df.ru>
+
+    * wmfdraw.py, emfdraw.py, emfcmd.py: Added IntersectClipRegion.
+    
 09-14-2007  Valek Filippov  <frob@df.ru>
 
     * wmffigs.py, emfdraw.py: Fixed arc/pie/chors for 'intentionally wrong' cases.
