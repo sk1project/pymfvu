@@ -89,6 +89,26 @@ symbol = {
   0xf8:'\xf8\xf8', 0xf9:'\xf9\xf8', 0xfa:'\xfa\xf8', 0xfb:'\xfb\xf8',
   0xfc:'\xfc\xf8', 0xfd:'\xfd\xf8', 0xfe:'\xfe\xf8', 0xff:'\xc7\x02'}
 
+charsets = {0:'iso8859-1', ##ANSI_CHARSET
+1:'DEFAULT_CHARSET',
+2:'SYMBOL_CHARSET',
+77:'MAC_CHARSET',
+128:'Shift_JIS', ##SHIFTJIS_CHARSET
+129:'cp949',##HANGUL_CHARSET
+##130:'x-Johab',##JOHAB_CHARSET what is it?
+134:'gb2312',##GB2312_CHARSET
+136:'Big5',##CHINESEBIG5_CHARSET
+161:'windows-1253',##GREEK_CHARSET
+162:'windows-1254',##TURKISH_CHARSET
+163:'windows-1258',##VIETNAMESE_CHARSET
+177:'windows-1255',##HEBREW_CHARSET
+178:'windows-1256',##ARABIC_CHARSET
+186:'windows-1257',##BALTIC_CHARSET
+204:'windows-1251',##RUSSIAN_CHARSET
+222:'cp874',##THAI_CHARSET
+238:'cp1250',##EASTEUROPE_CHARSET
+255:'cp437'##'OEM_CHARSET
+}
 
 def symbol_to_utf(text):
     str = ''
@@ -106,6 +126,7 @@ def ExtTextOut(ctx,page,i):
 
     x,y,text,dx = page.cmds[i].args
     lentext = len(text)
+    textstr = text
     alignh = txtalign[page.txtalign]
     eonum = page.curfnt
     eo = page.wmfobjs[eonum]
@@ -119,7 +140,12 @@ def ExtTextOut(ctx,page,i):
     FONT = eo.font+' '+bld+itl+str(size/1.5)
     fdesc = pango.FontDescription(FONT)
     if eo.font == 'Symbol':
-        text=unicode(symbol_to_utf(text),'utf-16')
+        textstr=unicode(symbol_to_utf(text),'utf-16')
+    if eo.charset > 77 and charsets.has_key(eo.charset):
+        # have to reencode and have no idea about Mac encoding
+        print 'Reencoding frщm charset %s'%charsets[eo.charset],'text: ',text
+        textstr = unicode(text,charsets[eo.charset])
+        textstr.encode('utf-8')
 
     if cpupdate.has_key(page.txtalign):
         x,y = ctx.get_current_point()
@@ -148,13 +174,13 @@ def ExtTextOut(ctx,page,i):
     layout = ctx.create_layout()
     layout.set_font_description(fdesc)
 
-    layout.set_text(text)
+    layout.set_text(textstr)
     xsize,ysize = layout.get_size()
     xsize=xsize/1000./page.width
     ysize=ysize/1000./page.height
     if len(dx)>3: ## there is shifts
         t = text[lentext-1]
-        layout.set_text(t)
+        layout.set_text(textstr)
         x0,y0 = layout.get_size()
         xsize=x0/1000.+dxsum
     
@@ -217,7 +243,7 @@ def ExtTextOut(ctx,page,i):
     if dxsum>0 or eo.orient!=0:
         ctx.save()
         for i in range(lentext):
-            t = text[i]
+            t = textstr[i]
             layout.set_text(t)
             x0,y0 = layout.get_size()
             ctx.save()
@@ -232,10 +258,10 @@ def ExtTextOut(ctx,page,i):
             else:
                 xs = xs+xup
             ctx.restore()
-            ctx.move_to(xs,ys)                
+            ctx.move_to(xs,ys) 
         ctx.restore()
     else:
-        layout.set_text(text)
+        layout.set_text(textstr)
         ctx.show_layout(layout)
     ctx.restore()
     

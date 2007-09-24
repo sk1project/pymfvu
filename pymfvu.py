@@ -34,7 +34,7 @@ import string
 import hexdump
 import struct
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 __author__ = "Valek Filippov"
 __url__ = "http://www.sk1project.org"
 __description__ = "Python Windows and Enchanced Metafile viewer"

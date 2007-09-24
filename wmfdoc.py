@@ -99,6 +99,7 @@ class wmfobj:
     orient = 0
     under = 0
     strike = 0
+    charset = 1
     hatch = 0
     data = None
     flag = 0
