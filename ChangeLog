@@ -2,6 +2,7 @@
 
     * wmfdraw.py, wmffigs.py: synced back from vsdviewer.
     * wmfdoc.py, pymfvu.py: moved page size detection, backported scrolled/zoom from vsdviewer.
+    * pymfvu.py: fixed hexdump show/hide/update bug.
     
 2007-09-24  Valek Filippov  <frob@df.ru>
 

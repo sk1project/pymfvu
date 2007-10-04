@@ -34,7 +34,7 @@ import string
 import hexdump
 import struct
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 __author__ = "Valek Filippov"
 __url__ = "http://www.sk1project.org"
 __description__ = "Python Windows and Enchanced Metafile viewer"
@@ -178,8 +178,11 @@ class ApplicationMainWindow(gtk.Window):
                 self.das[pn].page.hd.vbox.hide()
                 self.das[pn].page.hdv = 0
             else:
-                self.das[pn].page.hd.vbox.show()
+                self.das[pn].page.hd.vbox.show_all()
                 self.das[pn].page.hdv = 1
+            data = self.das[pn].page.file.records[int(self.das[pn].page.hadj.value)].data
+            self.update_hexdump(data)
+                
         
     def activate_records(self, action):
         pn = self.notebook.get_current_page()
@@ -224,7 +227,7 @@ class ApplicationMainWindow(gtk.Window):
     
     def activate_about(self, action):
         dialog = gtk.AboutDialog()
-        dialog.set_name("pywmfvu")
+        dialog.set_name("pywmfvu %s\nWMF/EMF file viewer"%__version__)
         dialog.set_copyright("     \302\251 Copyright 2007 Valek Filippov     ")
         dialog.set_website("http://www.sk1project.org/")
         dialog.set_default_size(700,400)
@@ -407,8 +410,11 @@ class ApplicationMainWindow(gtk.Window):
                 vpaned.pack1(vbox, resize=True,shrink= False)
                 self.notebook.append_page(vpaned,label)
                 self.notebook.show_tabs = True
-                self.notebook.show_all()
-                page.hd.vbox.hide()
+##                self.notebook.show_all()
+                vbox.show_all()
+                vpaned.show()
+                self.notebook.show()
+##                page.hd.vbox.hide()
             except:
                 print 'Something wrong with a file.' ## FIXME! Bring up some dialog?
                 pass
