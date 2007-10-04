@@ -115,6 +115,8 @@ class Face(gtk.DrawingArea):
         super(Face, self).__init__()
         self.connect("expose_event", self.expose)
         self._dragging = False # true if the interface is being dragged
+        self.page.width = 1.
+        self.page.height = 1.
         
     def expose(self, widget, event):
         self.ctx = widget.window.cairo_create()
@@ -124,38 +126,10 @@ class Face(gtk.DrawingArea):
         return False
 
     def draw(self, ctx):
-        rect = self.get_allocation()
-        self.page.width = 1.
-        self.page.height = 1.
-##        if self.page.cmds[0].type == 1: ##AldusPlaceable
-##            pca = self.page.cmds[0].args
-##            self.page.VPx = pca[4]
-##            self.page.VPOx = pca[2]
-##            self.page.VPy = pca[5]
-##            self.page.VPOy = pca[3]
-##            self.page.width = abs(pca[4]-pca[2])
-##            self.page.height = abs(pca[5]-pca[3])
-
-        nums = len(self.page.cmds)
-        idx = 0
-        for i in range(nums):
-            spct = self.page.cmds[i].type
-            if spct == 523:
-                self.page.DCs[0].x,self.page.DCs[0].y = self.page.cmds[i].args
-                idx+=1
-            if spct == 524:
-                self.page.DCs[0].Wx,self.page.DCs[0].Wy = self.page.cmds[i].args
-                idx+=1
-            if idx == 2:
-                self.page.width = abs(self.page.DCs[0].Wx) ##- self.page.DCs[0].x)
-                self.page.height = abs(self.page.DCs[0].Wy) ##- self.page.DCs[0].y)
-                break
-
-        ratio = min(rect.width*1./self.page.width,rect.height*1./self.page.height)
+        ratio = 1
         print 'W/H/R: ',self.page.width,self.page.height,ratio
-        self.page.scale = ratio
         if self.page.width !=1 and self.page.height != 1:
             matrix = cairo.Matrix(ratio*self.page.width*1.*self.page.zoom,0,0,ratio*self.page.height*1.*self.page.zoom,0,0)
             ctx.transform(matrix)
-        wmfdraw.render(self,ctx,self.page)
+        wmfdraw.render(self,ctx)
         

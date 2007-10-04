@@ -1,17 +1,22 @@
-09-24-2007  Valek Filippov  <frob@df.ru>
+2007-10-03  Valek Filippov  <frob@df.ru>
+
+    * wmfdraw.py, wmffigs.py: synced back from vsdviewer.
+    * wmfdoc.py, pymfvu.py: moved page size detection, backported scrolled/zoom from vsdviewer.
+    
+2007-09-24  Valek Filippov  <frob@df.ru>
 
     * wmftext.py: Added reencoding of text from font encoding to UTF-8.
     
-09-23-2007  Valek Filippov  <frob@df.ru>
+2007-09-23  Valek Filippov  <frob@df.ru>
 
     * wmfdraw.py, emfdraw.py, emfcmd.py: Added IntersectClipRegion.
     
-09-14-2007  Valek Filippov  <frob@df.ru>
+2007-09-14  Valek Filippov  <frob@df.ru>
 
     * wmffigs.py, emfdraw.py: Fixed arc/pie/chors for 'intentionally wrong' cases.
     * test/*: added dir with testing files and screenshots of them.
     
-09-12-2007  Valek Filippov  <frob@df.ru>
+2007-09-12  Valek Filippov  <frob@df.ru>
 
     Version 0.0.4
     * pywmf.py: Improved EOF checking
@@ -19,7 +24,7 @@
     * emf*: added license statement
     * pyemf.py: added while Rob will make a release with load_mem function
 
-09-04-2007  Valek Filippov  <frob@df.ru>
+2007-09-04  Valek Filippov  <frob@df.ru>
 
     * Version 0.0.3.
       Merged with pyemfvu and renamed to pymfvu.
@@ -28,10 +33,10 @@
       Hexdump is switched off by default.
       Reimplemented WindowOrg/Ext.
   
-08-18-2007  Valek Filippov  <frob@df.ru>
+2007-08-18  Valek Filippov  <frob@df.ru>
 
     * wmftext.py: Fixed Symbol font translation.
     
-08-17-2007  Valek Filippov  <frob@df.ru>
+2007-08-17  Valek Filippov  <frob@df.ru>
 
     0.0.1 version has been published.

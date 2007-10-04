@@ -28,7 +28,6 @@ def CreatePalette(ctx,page,i):
         clr.r,clr.g,clr.b = data[j*4],data[j*4+1],data[j*4+2]
         page.palette[j]=clr
     page.wmfobjs[h]=eo
-    print i,'Palette. Handle: ',h
 
 def CreatePen(ctx,page,i):
     fgclr = wmfdoc.color()
@@ -40,7 +39,6 @@ def CreatePen(ctx,page,i):
     eo.style = style
     eo.flag = flag
     page.wmfobjs[h]=eo
-    print i,'Pen: ',fgclr.r,fgclr.g,fgclr.b,'Style: ',style,' Handle: ',h
 
 def CreateBrushIndirect(ctx,page,i):
     bgclr = wmfdoc.color()
@@ -52,7 +50,6 @@ def CreateBrushIndirect(ctx,page,i):
     eo.hatch = lbHatch
     eo.flag = flag    
     page.wmfobjs[h]=eo
-    print i,'Brush: ',bgclr.r,bgclr.g,bgclr.b,lbStyle,' Handle: ',h
 
 def DibCreatePatternBrush(ctx,page,i):
     h,biWidth,biHeight,biSize,bshift,data = page.cmds[i].args
@@ -61,7 +58,6 @@ def DibCreatePatternBrush(ctx,page,i):
     eo.style = 3 ## pattern brush
     eo.data = biWidth,biHeight,biSize,bshift,data ## temporary assume 1 bpp image
     page.wmfobjs[h]=eo
-    print i,'PatternBrush: ',biWidth,biHeight,bshift,' Handle: ',h
 
 def CreateFontIndirect(ctx,page,i):
     h = page.cmds[i].args[0]
@@ -79,10 +75,8 @@ def CreateFontIndirect(ctx,page,i):
     eo.italic = page.cmds[i].args[1][5]
     eo.under = page.cmds[i].args[1][6]
     eo.strike = page.cmds[i].args[1][7]
-    eo.charset = page.cmds[i].args[1][8]
     font = page.cmds[i].args[2]
     pos = font.find('\x00')
     font = font[0:pos]
     eo.font = font
     page.wmfobjs[h]=eo
-    print i,'Font: ',font,size,eo.italic,eo.escape,eo.under,eo.weight,page.cmds[i].args[1],' Handle: ',h

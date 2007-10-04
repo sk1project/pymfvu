@@ -333,6 +333,7 @@ class ApplicationMainWindow(gtk.Window):
         if event.button == 3:
             self.das[pn].page.zoom/=1.4
         self.das[pn].hide()
+        self.das[pn].set_size_request(int(self.das[pn].page.width*self.das[pn].page.zoom),int(self.das[pn].page.height*self.das[pn].page.zoom))
         self.das[pn].show()
         self.notebook.set_current_page(pn)
         
@@ -368,8 +369,27 @@ class ApplicationMainWindow(gtk.Window):
                 page.parse()
                 dnum = len(self.das)
                 self.das[dnum] = page.Face
-                self.das[dnum].connect("button_press_event",self.on_button_press)
-                self.das[dnum].set_events(gtk.gdk.BUTTON_PRESS_MASK)
+                nums = len(page.cmds)
+                idx = 0
+                for i in range(nums):
+                    spct = page.cmds[i].type
+                    if spct == 523:
+                        page.DCs[0].x,page.DCs[0].y = page.cmds[i].args
+                        idx+=1
+                    if spct == 524:
+                        page.DCs[0].Wx,page.DCs[0].Wy = page.cmds[i].args
+                        idx+=1
+                    if idx == 2:
+                        page.width = abs(page.DCs[0].Wx) ##- self.page.DCs[0].x)
+                        page.height = abs(page.DCs[0].Wy) ##- self.page.DCs[0].y)
+                        break
+
+                page.zoom = min(170./page.width,250./page.height)## set it one time
+                scrolled = gtk.ScrolledWindow()
+                scrolled.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+                scrolled.add_with_viewport(self.das[dnum])
+                scrolled.set_events(gtk.gdk.BUTTON_PRESS_MASK)
+                scrolled.connect("button_press_event",self.on_button_press)
                 pos = fname.rfind('/')
                 if pos !=-1:
                     fname = fname[pos+1:]
@@ -377,7 +397,7 @@ class ApplicationMainWindow(gtk.Window):
                 label = gtk.Label(fname)
                 vbox = gtk.VBox(homogeneous=False, spacing=0)
                 vpaned = gtk.VPaned()
-                vbox.pack_start(self.das[dnum], expand=True, fill=True, padding=0)
+                vbox.pack_start(scrolled, expand=True, fill=True, padding=0)
                 self.das[dnum].page.hadj = gtk.Adjustment(0.0, 0.0,  len(self.das[dnum].page.cmds)+hadjshift, 0.1, 1.0, 1.0)
                 self.das[dnum].page.hadj.connect("value_changed", self.adj_changed)
                 hscale = gtk.HScale(self.das[dnum].page.hadj)
