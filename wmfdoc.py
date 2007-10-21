@@ -115,8 +115,6 @@ class Face(gtk.DrawingArea):
         super(Face, self).__init__()
         self.connect("expose_event", self.expose)
         self._dragging = False # true if the interface is being dragged
-        self.page.width = 1.
-        self.page.height = 1.
         
     def expose(self, widget, event):
         self.ctx = widget.window.cairo_create()

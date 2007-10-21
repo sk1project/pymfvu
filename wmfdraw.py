@@ -23,7 +23,7 @@ import pango
 import cairo
 import pangocairo
 import struct
-import wmfdoc
+import mfpage
 import wmfcmd
 import wmfobjects
 import wmftext
@@ -39,8 +39,11 @@ def render(self,ctx):
     page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = 255.,255.,255.
     page.txtalign = 0
     ctx.set_fill_rule(1) ## seems to be EMF default
-##    nums = len(page.cmds)
-    nums = int(page.hadj.value)
+    if page.hadj == 1:
+        nums = len(page.cmds)
+        print 'NUMS'
+    else:
+        nums = int(page.hadj.value)
     for i in range(nums):
         if drawcmds.has_key(page.cmds[i].type):
             drawcmds[page.cmds[i].type](ctx,page,i)
@@ -57,7 +60,6 @@ def convcoords(page,ctx,x,y):
     szy = 1.*page.height*page.zoom
     dy = shift(yr,szy)/szy 
     return xr+dx,yr+dy
-    return xr,yr
 
 def convlen(page,ctx,dx,dy):
     pass
@@ -70,14 +72,14 @@ def SetBKColor(ctx,page,i):
     if flag !=1:
         page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = r,g,b
     else:
-        clr = page.wmfobjs[curpal].palette[r]  ## FIXME1 It has to be 2 bytes index made of R and G.
+        clr = page.mfobjs[curpal].palette[r]  ## FIXME1 It has to be 2 bytes index made of R and G.
         page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = clr.r,clr.g,clr.b
    
 def SelectObject(ctx,page,i):
     otype = {1:'Pen',2:'Brush',3:'Font',4:'Palette'}
     eonum = page.cmds[i].args
-    if page.wmfobjs.has_key(eonum): ## I don't use TEXT things yet
-        eo = page.wmfobjs[eonum]
+    if page.mfobjs.has_key(eonum): 
+        eo = page.mfobjs[eonum]
         type = eo.type
         if type == 1:
             page.curfg = eonum
@@ -129,8 +131,7 @@ def SetViewportOrgEx(ctx,page,i):
 
 def SaveDC(ctx,page,i):
     ctx.save()
-##    print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++@'
-    dc = wmfdoc.DC()
+    dc = mfpage.DC()
     page.DCs.append(dc)
     page.DCs[page.curdc+1].VPOx =  page.DCs[page.curdc].VPOx
     page.DCs[page.curdc+1].VPOy = page.DCs[page.curdc].VPOy 
@@ -144,7 +145,6 @@ def SaveDC(ctx,page,i):
 
 def RestoreDC(ctx,page,i):
     ctx.restore()
-##    print '--------------------------------------------------------------------@'
     page.DCs.pop()
     page.curdc-=1
     
@@ -158,14 +158,13 @@ darr = (array.array('b','\xff'+'\x00'*7),
 
 def FillPath(ctx,page,i):
     ctx.save()
-##    print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++@'
     matrix = cairo.Matrix(1./page.width,0,0,1./page.height,0,0)
     ctx.transform(matrix)
     eonum = page.curbg
-    if eonum == 0x80000005 or page.wmfobjs[eonum].style == 1: ## bkmode is temporary before hatch/bitmap brushes
+    if eonum == 0x80000005 or page.mfobjs[eonum].style == 1: ## bkmode is temporary before hatch/bitmap brushes
         pass
     else:
-        eo = page.wmfobjs[eonum]
+        eo = page.mfobjs[eonum]
         if eo.style == 2 or eo.style == 3:
             if eo.style == 2:
                 data = darr[eo.hatch]
@@ -180,11 +179,6 @@ def FillPath(ctx,page,i):
                 pixbufloader.write(bmp)
                 pixbufloader.close()
                 pixbuf = pixbufloader.get_pixbuf()
-## for testing purposes
-##                f = open('file_%u'%(i)+'.bmp','w')
-##                f.write(bmp)
-##                f.flush()
-##                f.close()
                 cs = cairo.ImageSurface(0,w,h)
                 ct = cairo.Context(cs)
                 ct2 = gtk.gdk.CairoContext(ct)
@@ -211,24 +205,20 @@ def FillPath(ctx,page,i):
                 pat.set_filter(5)
                 pat.set_extend(1)
                 ctx.save()
-##                print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++@'
                 ctx.clip()
                 ctx.scale(.8/page.scale+0.5,.8/page.scale+0.5)
                 ctx.mask(pat)
                 ctx.restore()
-##                print '-------------------------------------------------------------------@'
             else:
                 pat = cairo.SurfacePattern(cs)
                 pat.set_filter(5)
                 pat.set_extend(1)
                 ctx.save()
-##                print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++@'
                 ctx.clip()
                 ctx.scale(.8/page.scale+0.5,.8/page.scale+0.5)
                 ctx.set_source(pat)
                 ctx.paint()
                 ctx.restore()
-##                print '--------------------------------------------------------------------@'
         else:
             if eo.flag !=1:
                 r,g,b = eo.clr.r,eo.clr.g,eo.clr.b
@@ -239,7 +229,6 @@ def FillPath(ctx,page,i):
             ctx.set_source_rgba(r/255.,g/255.,b/255.,page.alpha)
             ctx.fill_preserve()
     ctx.restore()
-##    print '--------------------------------------------------------------------@'
     
 capjoin = {0:1,1:2,2:0}
 cap = {0:'Flat',1:'Round',2:'Square'}
@@ -248,19 +237,17 @@ join = {0:'Miter',1:'Round',2:'Bevel'}
 def StrokePath(ctx,page,i):
     eonum = page.curfg
     ctx.save()
-##    print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++@'
-    if eonum == 0x80000008 or page.wmfobjs[eonum].style == 5:
+    if eonum == 0x80000008 or page.mfobjs[eonum].style == 5:
         ctx.set_line_width(0)
         ctx.stroke()
     else:
-        eo = page.wmfobjs[eonum]
+        eo = page.mfobjs[eonum]
         style = eo.style&0xF
         if eo.width < 2.1 or (style > 0 and style < 5):
             eo.width = 1./(page.scale*page.zoom)
         matrix = cairo.Matrix(1./page.width,0,0,1./page.height,0,0)
         ctx.transform(matrix)
         ctx.set_line_width(eo.width)    
-
         lcap,ljoin = 0,0
         if (eo.style&0xF00)>>8 <3:
             lcap = capjoin[(eo.style&0xF00)>>8]
@@ -287,7 +274,6 @@ def StrokePath(ctx,page,i):
         ctx.set_source_rgba(r/255.,g/255.,b/255.,1.)
         ctx.stroke()
     ctx.restore()
-##    print '--------------------------------------------------------------------@'
 
 def CloseFigure(ctx,page,i):
     ctx.close_path()
@@ -309,7 +295,6 @@ def SetTextAlign(ctx,page,i):
     
 def StretchDIBits(ctx,page,i):
     ctx.save()
-##    print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++@'
     matrix = cairo.Matrix(1./page.width,0,0,1./page.height,0,0)
     ctx.transform(matrix)
     y = page.cmds[i].args[0]				##xDest
@@ -326,15 +311,9 @@ def StretchDIBits(ctx,page,i):
     bmp = '\x42\x4d'+bmpsize+'\x00\x00\x00\x00'+bmpshift+bmpdata
     pixbufloader = gtk.gdk.PixbufLoader()
     pixbufloader.write(bmp)
-#### for testing purposes
-##    f = open('file_%u_%x'%(i,dwROP)+'.bmp','w')
-##    f.write(bmp)
-##    f.flush()
-##    f.close()
     pixbufloader.close()
     pixbuf = pixbufloader.get_pixbuf()
     ctx.save()
-##    print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++@'
     ctx.translate(x,y)
     ctx.scale(dxdst*1./dx,dydst*1./dy)
     if dwROP == 0xee0086: ## SRCPAINT
@@ -352,20 +331,18 @@ def StretchDIBits(ctx,page,i):
         ctx.set_source_pixbuf(pixbuf,0,0)
         ctx.paint()
     ctx.restore()
-##    print '--------------------------------------------------------------------@'
     ctx.restore()
-    print '--------------------------------------------------------------------@'
   
 def SetPolyfillMode(ctx,page,i):
     ctx.set_fill_rule(page.cmds[i].args)
     
 def StrokePathPreserve(ctx,page,i):
     eonum = page.curfg
-    if eonum == 0x80000008 or page.wmfobjs[eonum].style == 5:
+    if eonum == 0x80000008 or page.mfobjs[eonum].style == 5:
         ctx.set_line_width(0)
         ctx.stroke()
     else:
-        eo = page.wmfobjs[eonum]
+        eo = page.mfobjs[eonum]
         if eo.flag !=1:
                 r,g,b = eo.clr.r,eo.clr.g,eo.clr.b
         else:

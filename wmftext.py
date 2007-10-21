@@ -125,11 +125,12 @@ cpupdate = {1:1,9:1,25:1}
 def ExtTextOut(ctx,page,i):
 
     x,y,text,dx = page.cmds[i].args
+    print 'ExtText:',text
     lentext = len(text)
     textstr = text
     alignh = txtalign[page.txtalign]
     eonum = page.curfnt
-    eo = page.wmfobjs[eonum]
+    eo = page.mfobjs[eonum]
     size = eo.size
     bld = ''
     itl = ''
@@ -143,7 +144,7 @@ def ExtTextOut(ctx,page,i):
         textstr=unicode(symbol_to_utf(text),'utf-16')
     if eo.charset > 77 and charsets.has_key(eo.charset):
         # have to reencode and have no idea about Mac encoding
-        print 'Reencoding frщm charset %s'%charsets[eo.charset],'text: ',text
+        print 'Reencoding from charset %s'%charsets[eo.charset],'text: ',text
         textstr = unicode(text,charsets[eo.charset])
         textstr.encode('utf-8')
 
@@ -156,6 +157,7 @@ def ExtTextOut(ctx,page,i):
     print 'X,Y: ',x,y
     dxsum = 0
     if len(dx)>3: ## there is shifts
+        print 'Shifts'
         dxoffs = 0
         dxlist = []
         if lentext/2. != lentext/2:

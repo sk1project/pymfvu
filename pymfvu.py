@@ -24,17 +24,17 @@
 #
 import sys
 import gtk
-import wmfdoc
-import emfdoc
 import wmfcmd
+import emfcmd
 import pango
 import cairo
 import pangocairo
 import string
 import hexdump
 import struct
+import mfpage
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __author__ = "Valek Filippov"
 __url__ = "http://www.sk1project.org"
 __description__ = "Python Windows and Enchanced Metafile viewer"
@@ -123,9 +123,20 @@ class ApplicationMainWindow(gtk.Window):
         self.das = {}
         self.fname = ''
         if len(sys.argv) > 1:
-            for i in range(len(sys.argv)-1):
-                self.fname = sys.argv[i+1]
-                self.activate_open()
+            if sys.argv[1] == 'b':
+                print 'Batch mode switch was found'
+                for i in range(len(sys.argv)-2):
+                    fname = sys.argv[i+2]
+                    self.batch_open(fname)
+            else:
+                for i in range(len(sys.argv)-1):
+                    self.fname = sys.argv[i+1]
+                    self.activate_open()
+
+##        if len(sys.argv) > 1:
+##            for i in range(len(sys.argv)-1):
+##                self.fname = sys.argv[i+1]
+##                self.activate_open()
  
     def __create_action_group(self):
         # GtkActionEntry
@@ -171,6 +182,55 @@ class ApplicationMainWindow(gtk.Window):
         action_group.add_actions(entries)
         return action_group
 
+    def batch_open(self, fname):
+            input = open(fname)
+            buf = input.read()
+            [sig] = struct.unpack('i',buf[40:44])
+            print 'Signature:',sig
+##            try:
+            if sig == 0x464D4520:
+                pg = mfpage.emfPage()
+            else:
+                pg = mfpage.wmfPage()
+            pg.file.loadmem(buf)
+            pg.parse()
+            pf = pg.Face
+            pg.hadj = 1
+            nums = len(pg.cmds)
+            idx = 0
+            for i in range(nums):
+                spct = pg.cmds[i].type
+                if spct == 523:
+                    pg.DCs[0].x,pg.DCs[0].y = pg.cmds[i].args
+                    idx+=1
+                if spct == 524:
+                    pg.DCs[0].Wx,pg.DCs[0].Wy = pg.cmds[i].args
+                    idx+=1
+                if idx == 2:
+                    pg.width = abs(pg.DCs[0].Wx) ##- self.page.DCs[0].x)
+                    pg.height = abs(pg.DCs[0].Wy) ##- self.page.DCs[0].y)
+                    break
+
+            pos = fname.rfind('/')
+            if pos !=-1:
+                fname = fname[pos+1:]
+            pos = fname.rfind('.')
+            if pos !=-1:
+                fname = fname[0:pos]
+            fname = fname+'.svg'
+            surface = cairo.SVGSurface(fname,pg.width*1.2,pg.height*1.2)
+            ct = cairo.Context(surface)
+            cr = pangocairo.CairoContext(ct)
+            cr.save()
+            pf.render(cr,pf.page)
+            cr.restore()
+            cr.show_page()
+            surface.flush()
+            surface.finish()
+##        except:
+##            print 'Something goes wrong'
+        
+        
     def activate_hexdump(self, action):
         pn = self.notebook.get_current_page()
         if pn != -1:
@@ -191,9 +251,6 @@ class ApplicationMainWindow(gtk.Window):
             offset = 0
             records = self.das[pn].page.file.records
             print 'Records: ',len(records)
-            for i in range(len(records)):
-                string = string+'%u  %04x   '%(i,offset)+unicode(records[i])
-                offset+=records[i].nSize
             window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             window.set_resizable(True)
             window.set_default_size(650, 700)
@@ -206,7 +263,17 @@ class ApplicationMainWindow(gtk.Window):
             textbuffer = textview.get_buffer()
             textbuffer.create_tag("monospace", family="monospace")
             iter_label = textbuffer.get_iter_at_offset(0)
-            textbuffer.insert_with_tags_by_name(iter_label, string,"monospace")
+            for i in range(len(records)):
+                textbuffer.insert_with_tags_by_name(iter_label, '%u  %04x   %s %s\n'%(i,offset,records[i].__class__.__name__.lstrip('_'),records[i].format.fmt),"monospace")
+                if records[i].format.typedef:
+                    for item in records[i].format.typedef:
+                        typecode=item[0]
+                        name=item[1]
+                        val=records[i].str_decode(typecode,name)
+                        try:
+                            textbuffer.insert_with_tags_by_name(iter_label, "\t%-20s: %s\n" % (name,val),"monospace")
+                        except:
+                            pass		
             sw.add(textview)
             sw.show()
             textview.show()
@@ -342,13 +409,21 @@ class ApplicationMainWindow(gtk.Window):
         
     def adj_changed(self,widget):
         pn = self.notebook.get_current_page()
-        self.das[pn].hide()
-        self.das[pn].show()
-        self.notebook.set_current_page(pn)
-        data = self.das[pn].page.file.records[int(self.das[pn].page.hadj.value)].data
-        self.update_hexdump(data)
-        cmd = wmfcmd.mr_ids[self.das[pn].page.file.records[int(self.das[pn].page.hadj.value)].mr_id]+": "+str(self.das[pn].page.file.records[int(self.das[pn].page.hadj.value)].values)
-        self.update_statusbar(cmd)
+        if pn !=-1:
+            page = self.das[pn].page
+            data = page.file.records[int(page.hadj.value)].data
+            self.update_hexdump(data)
+## FIXME! Fix next line to support both WMF and EMF
+            if page.type == 2:
+                cmd = emfcmd.emr_ids[page.file.records[int(page.hadj.value)].emr_id]+": "+str(page.file.records[int(page.hadj.value)].str_details())
+            else:
+                cmd = wmfcmd.mr_ids[page.file.records[int(page.hadj.value)].mr_id]+": "+str(page.file.records[int(page.hadj.value)].str_details())
+            
+            self.update_statusbar(cmd)
+            self.das[pn].hide()
+            self.das[pn].show()
+            self.notebook.set_current_page(pn)
+
         
     def activate_open(self,parent=None):
         if self.fname !='':
@@ -357,37 +432,37 @@ class ApplicationMainWindow(gtk.Window):
         else:
            fname = self.file_open()
         if fname:
-            input = open(fname)
-            buf = input.read()
-            [sig] = struct.unpack('i',buf[40:44])
-            print 'Signature:',sig
-            try:
+                input = open(fname)
+                buf = input.read()
+                [sig] = struct.unpack('i',buf[40:44])
+                print 'Signature:',sig
+##            try:
                 if sig == 0x464D4520:
-                    page = emfdoc.Page()
+                    pg = mfpage.emfPage()
                     hadjshift = 0
                 else:
-                    page = wmfdoc.Page()
+                    pg = mfpage.wmfPage()
                     hadjshift = 1
-                page.file.loadmem(buf)
-                page.parse()
+                pg.file.loadmem(buf)
+                pg.parse()
                 dnum = len(self.das)
-                self.das[dnum] = page.Face
-                nums = len(page.cmds)
+                self.das[dnum] = pg.Face
+                nums = len(pg.cmds)
                 idx = 0
                 for i in range(nums):
-                    spct = page.cmds[i].type
+                    spct = pg.cmds[i].type
                     if spct == 523:
-                        page.DCs[0].x,page.DCs[0].y = page.cmds[i].args
+                        pg.DCs[0].x,pg.DCs[0].y = pg.cmds[i].args
                         idx+=1
                     if spct == 524:
-                        page.DCs[0].Wx,page.DCs[0].Wy = page.cmds[i].args
+                        pg.DCs[0].Wx,pg.DCs[0].Wy = pg.cmds[i].args
                         idx+=1
                     if idx == 2:
-                        page.width = abs(page.DCs[0].Wx) ##- self.page.DCs[0].x)
-                        page.height = abs(page.DCs[0].Wy) ##- self.page.DCs[0].y)
+                        pg.width = abs(pg.DCs[0].Wx) ##- self.page.DCs[0].x)
+                        pg.height = abs(pg.DCs[0].Wy) ##- self.page.DCs[0].y)
                         break
 
-                page.zoom = min(170./page.width,250./page.height)## set it one time
+                pg.zoom = min(280./pg.width,175./pg.height)## set it one time
                 scrolled = gtk.ScrolledWindow()
                 scrolled.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
                 scrolled.add_with_viewport(self.das[dnum])
@@ -396,7 +471,7 @@ class ApplicationMainWindow(gtk.Window):
                 pos = fname.rfind('/')
                 if pos !=-1:
                     fname = fname[pos+1:]
-                page.fname = fname
+                pg.fname = fname
                 label = gtk.Label(fname)
                 vbox = gtk.VBox(homogeneous=False, spacing=0)
                 vpaned = gtk.VPaned()
@@ -410,14 +485,12 @@ class ApplicationMainWindow(gtk.Window):
                 vpaned.pack1(vbox, resize=True,shrink= False)
                 self.notebook.append_page(vpaned,label)
                 self.notebook.show_tabs = True
-##                self.notebook.show_all()
                 vbox.show_all()
                 vpaned.show()
                 self.notebook.show()
-##                page.hd.vbox.hide()
-            except:
-                print 'Something wrong with a file.' ## FIXME! Bring up some dialog?
-                pass
+##            except:
+##                print 'Something wrong with a file.' ## FIXME! Bring up some dialog?
+##                pass
         return
         
     def activate_save(self,parent=None):
@@ -428,7 +501,7 @@ class ApplicationMainWindow(gtk.Window):
             ct = cairo.Context(surface)
             cr = pangocairo.CairoContext(ct)
             cr.save()
-            page.render(self.das[pn],cr,self.das[pn].page)
+            self.das[pn].render(cr,self.das[pn].page)
             cr.restore()
             cr.show_page()
             surface.flush()

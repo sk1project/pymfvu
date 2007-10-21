@@ -1,3 +1,10 @@
+2007-10-21  Valek Filippov  <frob@df.ru>
+
+    * Release 0.0.8
+    * mfpage.py, mfdraw.py: start to merge WMF and EMF code
+    * sort of batch-mode was added
+    
+
 2007-10-03  Valek Filippov  <frob@df.ru>
 
     * wmfdraw.py, wmffigs.py: synced back from vsdviewer.

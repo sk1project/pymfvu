@@ -34,7 +34,11 @@ class Page:
         self.fname = ''
         self.hadj = None
         self.hd = hexdump.hexdump()
-        self.hdv = 1
+        self.hdv = 0
+        self.curdc = 0
+        self.DCs = []
+        dc = DC()
+        self.DCs.append(dc)
         self.zoom = 1
         self.scale = 1
         self.width = 1.
@@ -111,6 +115,16 @@ class Page:
 
     def parse(self):
         emfcmd.parse(self)
+        
+class DC:
+        VPx = 1.
+        VPy = 1.
+        VPOx = 0.
+        VPOy = 0.
+        Wx = 1.
+        Wy = 1.
+        x = 0.
+        y = 0.
 
 class color:
     r = 0.
@@ -146,11 +160,12 @@ class Face(gtk.DrawingArea):
         return False
 
     def draw(self, ctx):
-        rect = self.get_allocation()
-        ratio = min(rect.width*1./self.page.width,rect.height*1./self.page.height)
+##        rect = self.get_allocation()
+##        ratio = min(rect.width*1./self.page.width,rect.height*1./self.page.height)
+        ratio = 1
         print self.page.width,self.page.height,ratio
         ctx.scale(self.page.zoom*ratio/1.2,self.page.zoom*ratio/1.2)
-        ctx.translate(self.page.width/10,self.page.height/10)
+##        ctx.translate(self.page.width/10,self.page.height/10)
         ctx.set_line_width(4/(self.page.zoom*ratio))
         emfdraw.render(self,ctx,self.page)
             

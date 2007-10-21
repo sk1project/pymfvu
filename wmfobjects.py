@@ -17,51 +17,51 @@
 # USA
 #
 
-import wmfdoc
+import mfpage
 
 def CreatePalette(ctx,page,i):
     h,numofclr,data = page.cmds[i].args
-    eo = wmfdoc.wmfobj()
+    eo = mfpage.mfobj()
     eo.type = 4
     for j in range(numofclr):
-        clr = wmfdoc.color()
+        clr = mfpage.color()
         clr.r,clr.g,clr.b = data[j*4],data[j*4+1],data[j*4+2]
         page.palette[j]=clr
-    page.wmfobjs[h]=eo
+    page.mfobjs[h]=eo
 
 def CreatePen(ctx,page,i):
-    fgclr = wmfdoc.color()
+    fgclr = mfpage.color()
     h,fgclr.r,fgclr.g,fgclr.b,flag,width,style = page.cmds[i].args
-    eo = wmfdoc.wmfobj()
+    eo = mfpage.mfobj()
     eo.type = 1
     eo.clr = fgclr
     eo.width = width
     eo.style = style
     eo.flag = flag
-    page.wmfobjs[h]=eo
+    page.mfobjs[h]=eo
 
 def CreateBrushIndirect(ctx,page,i):
-    bgclr = wmfdoc.color()
+    bgclr = mfpage.color()
     h,bgclr.r,bgclr.g,bgclr.b,flag,lbStyle,lbHatch = page.cmds[i].args
-    eo = wmfdoc.wmfobj()
+    eo = mfpage.mfobj()
     eo.type = 2
     eo.clr = bgclr
     eo.style = lbStyle
     eo.hatch = lbHatch
     eo.flag = flag    
-    page.wmfobjs[h]=eo
+    page.mfobjs[h]=eo
 
 def DibCreatePatternBrush(ctx,page,i):
     h,biWidth,biHeight,biSize,bshift,data = page.cmds[i].args
-    eo = wmfdoc.wmfobj()
+    eo = mfpage.mfobj()
     eo.type = 2
     eo.style = 3 ## pattern brush
     eo.data = biWidth,biHeight,biSize,bshift,data ## temporary assume 1 bpp image
-    page.wmfobjs[h]=eo
+    page.mfobjs[h]=eo
 
 def CreateFontIndirect(ctx,page,i):
     h = page.cmds[i].args[0]
-    eo = wmfdoc.wmfobj()
+    eo = mfpage.mfobj()
     eo.type = 3
     size = page.cmds[i].args[1][0]
     if size < 0:
@@ -79,4 +79,4 @@ def CreateFontIndirect(ctx,page,i):
     pos = font.find('\x00')
     font = font[0:pos]
     eo.font = font
-    page.wmfobjs[h]=eo
+    page.mfobjs[h]=eo

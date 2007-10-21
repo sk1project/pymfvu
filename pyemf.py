@@ -1090,13 +1090,13 @@ class _EMR:
                 start=self.unserializeOffset(self.offDescription)
                 # unicode is always stored in little endian format
                 txt=data[start:start+(2*self.nDescription)]
-                self.description=txt.decode('utf-16le')
+                self.description=txt.decode('utf-16le').encode('utf-8')
                 if self.verbose: print "str: %s" % self.description
 
         def str_extra(self):
             txt=StringIO()
             txt.write("\tunicode string: %s\n" % str(self.description))
-            txt.write("%s\n" % (struct.pack('16s',self.description.encode('utf-16le'))))
+            txt.write("%s\n" % (struct.pack('16s',self.description.decode('utf-16le').encode('utf-8'))))##16le'))))
             return txt.getvalue()
 
         def setBounds(self,dc,scaleheader):

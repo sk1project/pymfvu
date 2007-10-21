@@ -23,9 +23,12 @@ import pango
 import cairo
 import pangocairo
 import struct
-import emfdoc
+import mfpage
 import emfcmd
 import wmfdraw
+import wmftext
+import wmfobjects
+import mfdraw
 
 ## horiz 0 -
 ## vertc 1 |
@@ -35,102 +38,97 @@ import wmfdraw
 ## dcros 5 x
 
 def render(self,ctx,page):
-    drawcmds = {0:Noop,2:Polybezier,3:Polygone,4:Polyline,5:PolybezierTo,6:PolylineTo,7:PolyPolyline,8:PolyPolygone,\
-                        27:MoveTo,54:LineTo,55:ArcTo,42:Ellipse,43:Rectangle,44:RoundRect,45:Arc,46:Chord,47:Pie,\
-                        84:ExtTextOutW,82:ExtCreateFontIndirectW,22:SetTextAlign,24:SetTextColor,\
-                        9:SetWindowExtEx,10:SetWindowOrgEx,11:SetViewportExtEx,12:SetViewportOrgEx,\
-                        30:wmfdraw.IntersectClipRect,\
-                        33:SaveDC,34:RestoreDC,35:SetWorldTransform,36:ModifyWorldTransform,\
-                        37:SelectObject,38:CreatePen,39:CreateBrushIndirect,40:DeleteObject,95:ExtCreatePen,\
-                        59:BeginPath,60:EndPath,61:CloseFigure,62:FillPath, 63:StrokeAndFillPath,64:StrokePath,67:SelectClipPath,\
-                        81:StretchDIBits,19:SetPolyfillMode}
+    drawcmds = {0:Noop,1:Header,2:Polybezier,3:Polygone,4:Polyline,5:PolybezierTo,6:PolylineTo,7:PolyPolyline,8:PolyPolygone,\
+                        18:mfdraw.SetBKMode,25:mfdraw.SetBKColor,48:mfdraw.SelectPalette,22:mfdraw.SetTextAlign,\
+                        27:mfdraw.MoveTo,54:mfdraw.LineTo,55:ArcTo,42:mfdraw.Ellipse,43:mfdraw.Rectangle,44:mfdraw.RoundRect,45:Arc,46:Chord,47:Pie,\
+                        84:mfdraw.ExtTextOut,82:mfdraw.CreateFontIndirect,22:mfdraw.SetTextAlign,24:mfdraw.SetTextColor,\
+                        9:mfdraw.SetWindowExtEx,10:mfdraw.SetWindowOrgEx,11:mfdraw.SetViewportExtEx,12:mfdraw.SetViewportOrgEx,\
+                        30:mfdraw.IntersectClipRect,\
+                        33:mfdraw.SaveDC,34:mfdraw.RestoreDC,35:SetWorldTransform,36:ModifyWorldTransform,\
+                        37:mfdraw.SelectObject,38:mfdraw.CreatePen,39:mfdraw.CreateBrushIndirect,40:mfdraw.DeleteObject,95:ExtCreatePen,\
+                        59:BeginPath,60:EndPath,61:CloseFigure,62:mfdraw.FillPath, 63:StrokeAndFillPath,64:mfdraw.StrokePath,67:SelectClipPath,\
+                        81:StretchDIBits,19:mfdraw.SetPolyfillMode}
+##ExtCreateFontIndirectW                        
     ctx.set_source_rgba(0,0,0,1)
     ctx.set_fill_rule(0) ## seems to be EMF default
-##    nums = len(page.cmds)
-    nums = int(page.hadj.value)+1
+    if page.hadj == 1:
+        nums = len(page.cmds)
+        print 'NUMS'
+    else:
+        nums = int(page.hadj.value)+1
     for i in range(nums):
         if drawcmds.has_key(page.cmds[i].type):
             drawcmds[page.cmds[i].type](ctx,page,i)
         else:
             print i,'^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^UNSUPPORTED: ',emfcmd.emr_ids[page.cmds[i].type],page.cmds[i].args
 
-def convx(page,x):
-    xr = (x- page.x)*(page.VPx*1./page.Wx)+page.VPOx
-    return xr
-
-def convy(page,y):
-    yr = (y- page.y)*(page.VPy*1./page.Wy)+page.VPOy
-    return yr
     
 def Noop(ctx,page,i):
+    pass
+
+def Header(ctx,page,i):
+##    arg = page.cmds[i].args 
+##    pdc = page.DCs[page.curdc]
+##    page.width = arg[2]-arg[0]
+##    page.height = arg[3]-arg[1]
+##    print 'Header:',arg[0],arg[1],arg[2],arg[3],arg[17],arg[18],arg[19],arg[20]
     pass
     
 def Polybezier(ctx,page,i):
     x0,y0 = ctx.get_current_point()
     x,y = page.cmds[i].args[0]
-    x = convx(page,x)
-    y = convy(page,y)
+    x,y = mfdraw.convcoords(page,ctx,x,y)
     ctx.move_to(x,y)
     print i,'Polybezier: ',x0,y0,x,y
     for j in range(len(page.cmds[i].args)/3):
         x1,y1 = page.cmds[i].args[j*3+1]
-        x1 = convx(page,x1)
-        y1 = convy(page,y1)
+        x1,y1 = mfdraw.convcoords(page,ctx,x1,y1)
         x2,y2 = page.cmds[i].args[j*3+2]
-        x2 = convx(page,x2)
-        y2 = convy(page,y2)
+        x2,y2 = mfdraw.convcoords(page,ctx,x2,y2)
         x3,y3 = page.cmds[i].args[j*3+3]
-        x3 = convx(page,x3)
-        y3 = convy(page,y3)
+        x3,y3 = mfdraw.convcoords(page,ctx,x3,y3)
         ctx.curve_to(x1,y1,x2,y2,x3,y3)
-##    ctx.set_source_rgba(1,1,0,0.5)  ## for debug
-##    ctx.stroke()
-##    StrokePath(ctx,page,i) ## WRONG
+##        mfdraw.StrokePath(ctx,page,i)
     
 def Polygone(ctx,page,i):
-    x,y = page.cmds[i].args[1][0]
-    x = convx(page,x)
-    y = convy(page,y)
+    x,y = page.cmds[i].args[0]
+    x,y = mfdraw.convcoords(page,ctx,x,y)
     ctx.move_to(x,y)
-    for j in range(len(page.cmds[i].args[1])):
-        x,y = page.cmds[i].args[1][j]
-        x = convx(page,x)
-        y = convy(page,y)
+    for j in range(len(page.cmds[i].args)):
+        x,y = page.cmds[i].args[j]
+        x,y = mfdraw.convcoords(page,ctx,x,y)
         ctx.line_to(x,y)
-    print i,'Polygone: ',page.cmds[i].args[1]
-    FillPath(ctx,page,i)
-    StrokePath(ctx,page,i)
+    print i,'Polygone: ',page.cmds[i].args
+    mfdraw.FillPath(ctx,page,i)
+    mfdraw.StrokePath(ctx,page,i)
 
 def Polyline(ctx,page,i):
     x,y = page.cmds[i].args[0]
-    x = convx(page,x)
-    y = convy(page,y)
+    x,y = mfdraw.convcoords(page,ctx,x,y)
     ctx.move_to(x,y)
     print i,'Polyline: ',page.cmds[i].args[0]
     PolylineTo(ctx,page,i)
-    StrokePath(ctx,page,i)
+    mfdraw.StrokePath(ctx,page,i)
 
 def PolybezierTo(ctx,page,i):
     for j in range(len(page.cmds[i].args)/3):
         x1,y1 = page.cmds[i].args[j*3]
-        x1 = convx(page,x1)
-        y1 = convy(page,y1)
+        x1,y1 = mfdraw.convcoords(page,ctx,x1,y1)
         x2,y2 = page.cmds[i].args[j*3+1]
-        x2 = convx(page,x2)
-        y2 = convy(page,y2)
+        x2,y2 = mfdraw.convcoords(page,ctx,x2,y2)
         x3,y3 = page.cmds[i].args[j*3+2]
-        x3 = convx(page,x3)
-        y3 = convy(page,y3)
+        x3,y3 = mfdraw.convcoords(page,ctx,x3,y3)
         ctx.curve_to(x1,y1,x2,y2,x3,y3)
     print i,'PolybezierTo: ',page.cmds[i].args
+##    mfdraw.StrokePath(ctx,page,i)
 
 def PolylineTo(ctx,page,i):
     for j in range(len(page.cmds[i].args)):
         x1,y1 = page.cmds[i].args[j]
-        x1 = convx(page,x1)
-        y1 = convy(page,y1)
+        x1,y1 = mfdraw.convcoords(page,ctx,x1,y1)
         ctx.line_to(x1,y1)
     print i,'PolylineTo: ',page.cmds[i].args
+##    mfdraw.StrokePath(ctx,page,i)
     
 def PolyPolyline(ctx,page,i):
     aPolyCounts = page.cmds[i].args[0]
@@ -138,18 +136,15 @@ def PolyPolyline(ctx,page,i):
     shift = 0
     for k in range(len(aPolyCounts)): ## number of polygones
         x,y = aptl[shift]
-        x = convx(page,x)
-        y = convy(page,y)
+        x,y = mfdraw.convcoords(page,ctx,x,y)
         ctx.move_to(x,y)
         for j in range(aPolyCounts[k]-1): ## number of gones for i-th polygone
             x,y = aptl[j+1+shift]
-            x = convx(page,x)
-            y = convy(page,y)
+            x,y = mfdraw.convcoords(page,ctx,x,y)
             ctx.line_to(x,y)
         shift+=aPolyCounts[k]
         print i,'Poly  Polyline: ',k,shift
-##    FillPathPreserve(ctx,page,i)
-##    StrokePath(ctx,page,i)
+##    mfdraw.StrokePath(ctx,page,i)
     
 def PolyPolygone(ctx,page,i):
     aPolyCounts = page.cmds[i].args[0]
@@ -157,18 +152,16 @@ def PolyPolygone(ctx,page,i):
     shift = 0
     for k in range(len(aPolyCounts)): ## number of polygones
         x,y = aptl[shift]
-        x = convx(page,x)
-        y = convy(page,y)
+        x,y = mfdraw.convcoords(page,ctx,x,y)
         ctx.move_to(x,y)
         for j in range(aPolyCounts[k]-1): ## number of gones for i-th polygone
             x,y = aptl[j+1+shift]
-            x = convx(page,x)
-            y = convy(page,y)
+            x,y = mfdraw.convcoords(page,ctx,x,y)
             ctx.line_to(x,y)
         shift+=aPolyCounts[k]
-        print i,'Poly  Polygone: ',k,shift
-    FillPath(ctx,page,i)
-    StrokePath(ctx,page,i)
+        print i,'PolyPolygone: ',k,shift
+    mfdraw.FillPath(ctx,page,i)
+    mfdraw.StrokePath(ctx,page,i)
     
 def SetWorldTransform(ctx,page,i):
     em11,em12,em21,em22,dx,dy,mode = page.cmds[i].args
@@ -191,7 +184,7 @@ def ModifyWorldTransform(ctx,page,i):
 
 def ExtTextOutW(ctx,page,i):
     x,y,ye,text = page.cmds[i].args
-#    size = (convy(page,1)-convy(page,0))*page.emfobjs[page.curfnt].size
+#    size = (convy(page,1)-convy(page,0))*page.mfobjs[page.curfnt].size
     size = 0.9*(ye-y)
     txtalign ={0:0,6:1,2:2,8:0,14:1,16:2,18:0,24:1,20:2}
     alignh = txtalign[page.txtalign]
@@ -203,7 +196,7 @@ def ExtTextOutW(ctx,page,i):
         ctx.move_to(x,y+0.8*size) ##have to get baseline here
     layout = ctx.create_layout()
     eonum = page.curfnt
-    eo = page.emfobjs[eonum]
+    eo = page.mfobjs[eonum]
     bld = ''
     itl = ''
     if eo.weight > 400:
@@ -223,8 +216,8 @@ def ExtTextOutW(ctx,page,i):
     
 def SelectObject(ctx,page,i):
     eonum = page.cmds[i].args
-    if page.emfobjs.has_key(eonum): ## I don't use TEXT things yet
-        eo = page.emfobjs[eonum]
+    if page.mfobjs.has_key(eonum): ## I don't use TEXT things yet
+        eo = page.mfobjs[eonum]
         type = eo.type
         if type == 1:
             page.curfg = eonum
@@ -276,32 +269,32 @@ def RestoreDC(ctx,page,i):
     print i,'Restore ctx'
     
 def CreatePen(ctx,page,i):
-    fgclr = emfdoc.color()
+    fgclr = mfpage.color()
     h,fgclr.r,fgclr.g,fgclr.b,width = page.cmds[i].args
-    eo = emfdoc.emfobj()
+    eo = mfpage.mfobj()
     eo.type = 1
     eo.clr = fgclr
     eo.width = width
-    page.emfobjs[h]=eo
+    page.mfobjs[h]=eo
     print i,'Pen: ',fgclr.r,fgclr.g,fgclr.b,' Handle: ',h
 
 def ExtCreatePen(ctx,page,i):
-    fgclr = emfdoc.color()
+    fgclr = mfpage.color()
     h,fgclr.r,fgclr.g,fgclr.b = page.cmds[i].args
-    eo = emfdoc.emfobj()
+    eo = mfpage.mfobj()
     eo.type = 1
     eo.clr = fgclr
     eo.width = 5. ## what is default?
-    page.emfobjs[h]=eo
+    page.mfobjs[h]=eo
     print i,'ExtPen: ',fgclr.r,fgclr.g,fgclr.b,' Handle: ',h
 
 def CreateBrushIndirect(ctx,page,i):
-    bgclr = emfdoc.color()
+    bgclr = mfpage.color()
     h,bgclr.r,bgclr.g,bgclr.b = page.cmds[i].args
-    eo = emfdoc.emfobj()
+    eo = mfpage.mfobj()
     eo.type = 2
     eo.clr = bgclr
-    page.emfobjs[h]=eo
+    page.mfobjs[h]=eo
     print i,'Brush: ',bgclr.r,bgclr.g,bgclr.b,' Handle: ',h
         
 def FillPath(ctx,page,i):
@@ -309,7 +302,7 @@ def FillPath(ctx,page,i):
     if eonum == 0x80000005:
         print 'NO FILL'
     else:
-        eo = page.emfobjs[eonum]
+        eo = page.mfobjs[eonum]
         r = eo.clr.r
         g = eo.clr.g
         b = eo.clr.b
@@ -322,7 +315,7 @@ def StrokePath(ctx,page,i):
     if eonum == 0x80000008:
         print 'NO STROKE'
     else:
-        eo = page.emfobjs[eonum]
+        eo = page.mfobjs[eonum]
         r = eo.clr.r
         g = eo.clr.g
         b = eo.clr.b
@@ -341,6 +334,8 @@ def EndPath(ctx,page,i):
 
 def CloseFigure(ctx,page,i):
     ctx.close_path()
+##    mfdraw.FillPath(ctx,page,i)
+##    mfdraw.StrokePath(ctx,page,i)
     print i,'CloseFigure'
 
 def StrokeAndFillPath(ctx,page,i):
@@ -388,8 +383,7 @@ def Ellipse(ctx,page,i):
 
 def Arc(ctx,page,i):
     l,t,r,b,xs,ys,xe,ye = page.cmds[i].args
-    xc = convx(page,(l+r)/2.)
-    yc = convy(page,(t+b)/2.)
+    xc,yc = mfdraw.convcoords(page,ctx,(l+r)/2.,(t+b)/2.)
     dx = math.fabs(r-l)
     dy = math.fabs(b-t)
     ang1 = math.atan2((ys-yc),(xs-xc))
@@ -403,11 +397,12 @@ def Arc(ctx,page,i):
     ctx.scale(dx/2., dy/2.)
     ctx.arc_negative(0.,0.,1.,ang1,ang2)
     ctx.restore()
+    print 'Arc:',xc,yc,dx,dy,ang1,ang2
+    mfdraw.StrokePath(ctx,page,i)
     
 def ArcTo(ctx,page,i):
     l,t,r,b,xs,ys,xe,ye = page.cmds[i].args
-    xc = convx(page,(l+r)/2.)
-    yc = convy(page,(t+b)/2.)
+    xc,yc = mfdraw.convcoords(page,ctx,(l+r)/2.,(t+b)/2.)
     dx = math.fabs(r-l)
     dy = math.fabs(b-t)
     ang1 = math.atan2((ys-yc),(xs-xc))
@@ -418,22 +413,24 @@ def ArcTo(ctx,page,i):
     ctx.scale(dx/2., dy/2.)
     ctx.arc_negative(0.,0.,1.,ang1,ang2)
     ctx.restore()
+    print 'Arc:',xc,yc,dx,dy,ang1,ang2
+    mfdraw.StrokePath(ctx,page,i)
     
 def Chord(ctx,page,i):
     Arc(ctx,page,i)
     ctx.close_path()
-    FillPathPreserve(ctx,page,i)
-    StrokePath(ctx,page,i)
+    mfdraw.FillPathPreserve(ctx,page,i)
+    mfdraw.StrokePath(ctx,page,i)
 
 def Pie(ctx,page,i):
     l,t,r,b,xs,ys,xe,ye = page.cmds[i].args
-    xc = convx(page,(l+r)/2.)
-    yc = convy(page,(t+b)/2.)
+    xc,yc = mfdraw.convcoords(page,ctx,(l+r)/2.,(t+b)/2.)
+    print 'Pie:',xc,yc
     Arc(ctx,page,i)
     ctx.line_to(xc,yc)
     ctx.close_path()
-    FillPathPreserve(ctx,page,i)
-    StrokePath(ctx,page,i)
+    mfdraw.FillPathPreserve(ctx,page,i)
+    mfdraw.StrokePath(ctx,page,i)
 
 def Rectangle(ctx,page,i):
     x1,y1,x2,y2 = page.cmds[i].args
@@ -522,13 +519,13 @@ def ExtCreateFontIndirectW(ctx,page,i):
     font = unicode(font,'utf-16').encode('utf-8')
     pos = font.find('\x00')
     font = font[0:pos]
-    eo = emfdoc.emfobj()
+    eo = mfpage.mfobj()
     eo.type = 3
     eo.font = font
     eo.italic = italic
     eo.size = size
     eo.weight = weight
-    page.emfobjs[h]=eo
+    page.mfobjs[h]=eo
     print i,'Font: ',font,italic,weight,page.cmds[i].args[1],' Handle: ',h
 
 def SetTextColor(ctx,page,i):
@@ -555,10 +552,10 @@ def StretchDIBits(ctx,page,i):
     bmp = '\x42\x4d'+bmpsize+'\x00\x00\x00\x00'+bmpshift+bmpdata
     pixbufloader = gtk.gdk.PixbufLoader()
     pixbufloader.write(bmp)
-    f = open('file_%u_%x'%(i,dwROP)+'.bmp','w')
-    f.write(bmp)
-    f.flush()
-    f.close()
+##    f = open('file_%u_%x'%(i,dwROP)+'.bmp','w')
+##    f.write(bmp)
+##    f.flush()
+##    f.close()
     pixbufloader.close()
     pixbuf = pixbufloader.get_pixbuf()
     ctx.save()

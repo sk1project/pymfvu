@@ -18,7 +18,7 @@
 #
 
 import pywmf
-import wmfdoc
+import mfpage
 import struct
 
 mr_ids = {1:'Aldus_Header',2:'CLP_Header16',3:'CLP_Header32',4:'Header',
@@ -49,25 +49,25 @@ mr_ids = {1:'Aldus_Header',2:'CLP_Header16',3:'CLP_Header32',4:'Header',
             }
             
 def IntersectClipRect(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 1046
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Polygone(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 804
     cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
 
 def Polyline(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 805
     cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
     
 def PolyPolygone(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 1336
     nPolys = emf.records[num].nPolys
     erd = emf.records[num].data[2:]
@@ -78,96 +78,97 @@ def PolyPolygone(emf,num,page):
     page.cmds.append(cmd)
     
 def MoveTo(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 532
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def LineTo(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 531
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Arc(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 2071
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Ellipse(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 1048
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Rectangle(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 1051
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def RoundRect(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 1564
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Chord(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 2096
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
     
 def Pie(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 2074
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SetWindowExtEx(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 524
     cmd.args = emf.records[num].szlExtent_cx,emf.records[num].szlExtent_cy
     page.cmds.append(cmd)
 
 def SetWindowOrgEx(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 523
     cmd.args = emf.records[num].ptlOrigin_x,emf.records[num].ptlOrigin_y
     page.cmds.append(cmd)
 
 def SetViewportExtEx(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 526
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SetViewportOrgEx(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 525
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
     
 def SaveDC(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 30
     page.cmds.append(cmd)
 
 def RestoreDC(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 295
     page.cmds.append(cmd)
     
 def SelectObject(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 301
     cmd.args = emf.records[num].handle
     page.cmds.append(cmd)
     
 def CreatePenIndirect(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 762
+    
     lbColor = emf.records[num].lopnColor
     width = emf.records[num].lopnWidth
     style = emf.records[num].lopnStyle
@@ -178,48 +179,49 @@ def CreatePenIndirect(emf,num,page):
     i = 0
     while i<page.maxobj:
         try:
-            data = page.wmfobjs[i]
+            data = page.mfobjs[i]
             i+=1
         except:
             cmd.args = i,r,g,b,f,width*1.,style
-            page.wmfobjs[i] = 0
+            page.mfobjs[i] = 0
             page.cmds.append(cmd)
             break
 
 def CreatePatternBrush(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 505
     i = 0
     while i<page.maxobj:
         try:
-            data = page.wmfobjs[i]
+            data = page.mfobjs[i]
             i+=1
         except:
             cmd.args = emf.records[num].data
-            page.wmfobjs[i] = 0
+            page.mfobjs[i] = 0
             page.cmds.append(cmd)
             break
     
 def DibCreatePatternBrush(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 322
     i = 0
     while i<page.maxobj:
         try:
-            data = page.wmfobjs[i]
+            data = page.mfobjs[i]
             i+=1
         except:
             ern = emf.records[num]
             bd = ern.biDepth
             bshift = palsize[bd]+54
             cmd.args = i,ern.biWidth,ern.biHeight,ern.nSize+4,bshift,ern.data[4:]
-            page.wmfobjs[i] = 0
+            page.mfobjs[i] = 0
             page.cmds.append(cmd)
             break
         
 def CreateBrushIndirect(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 764
+    
     lbStyle = emf.records[num].lbStyle
     lbColor = emf.records[num].lbColor
     lbHatch = emf.records[num].lbHatch
@@ -230,37 +232,37 @@ def CreateBrushIndirect(emf,num,page):
     i = 0
     while i<page.maxobj:
         try:
-            data = page.wmfobjs[i]
+            data = page.mfobjs[i]
             i+=1
         except:
             cmd.args = i,r,g,b,f,lbStyle,lbHatch
-            page.wmfobjs[i] = 0
+            page.mfobjs[i] = 0
             page.cmds.append(cmd)
             break
     
 def CreatePalette(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 247
     i = 0
     while i<page.maxobj:
         try:
-            data = page.wmfobjs[i]
+            data = page.mfobjs[i]
             i+=1
         except:
             cmd.args = i,emf.records[num].lpltNumofclr, emf.records[num].data[4:]
-            page.wmfobjs[i] = 0
+            page.mfobjs[i] = 0
             page.cmds.append(cmd)
             break
 
 def DeleteObject(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 496
     cmd.args = emf.records[num].handle
-    del page.wmfobjs[emf.records[num].handle]
+    del page.mfobjs[emf.records[num].handle]
     page.cmds.append(cmd)
 
 def TextOut(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 1313
     count = emf.records[num].values[0]
     text = emf.records[num].data[2:2+count]
@@ -270,7 +272,7 @@ def TextOut(emf,num,page):
     page.cmds.append(cmd)
     
 def ExtTextOut(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 2610
     y = emf.records[num].values[0]
     x = emf.records[num].values[1]
@@ -285,22 +287,22 @@ def ExtTextOut(emf,num,page):
     page.cmds.append(cmd)
 
 def CreateFontIndirect(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 763
     i = 0
     while i<page.maxobj:
         try:
-            data = page.wmfobjs[i]
+            data = page.mfobjs[i]
             i+=1
         except:
             er = emf.records[num]
             cmd.args = i,er.values,er.data[18:]
-            page.wmfobjs[i] = 0
+            page.mfobjs[i] = 0
             page.cmds.append(cmd)
             break
 
 def SetTextColor(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 521
     crColor = emf.records[num].crColor
     f =  (crColor>>24)&0xFF
@@ -311,20 +313,20 @@ def SetTextColor(emf,num,page):
     page.cmds.append(cmd)
     
 def SetTextAlign(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 302
     cmd.args =  emf.records[num].iMode
     page.cmds.append(cmd)
 
 def SetStretchBltMode(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 263
     cmd.args =  emf.records[num].iMode
     page.cmds.append(cmd)
     
 palsize = {1:8,2:16,4:64,8:1024,16:0,24:0,32:0}
 def StretchDIBits(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 3907
     er = emf.records[num]
     bd = er.bmpDepth
@@ -339,7 +341,7 @@ def StretchDIBits(emf,num,page):
     page.cmds.append(cmd)
 
 def SetPolyfillMode(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 262
     if emf.records[num].iMode == 2:
         cmd.args =  0
@@ -348,13 +350,13 @@ def SetPolyfillMode(emf,num,page):
     page.cmds.append(cmd)
     
 def SetROP2(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 260
     cmd.args =  emf.records[num].iMode
     page.cmds.append(cmd)
 
 def SetBKColor(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 513
     bkColor = emf.records[num].bkColor
     f =  (bkColor>>24)&0xFF
@@ -365,19 +367,19 @@ def SetBKColor(emf,num,page):
     page.cmds.append(cmd)
 
 def SetMapMode(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 259
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
     
 def SetBKMode(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 258
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
     
 def SelectPalette(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 564
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
@@ -386,7 +388,7 @@ def Header(emf,num,page):
     page.maxobj = emf.records[num].mtNoObjects
  
 def Aldus_Header(emf,num,page):
-    cmd = wmfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 1
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
@@ -436,7 +438,7 @@ def parse(page):
                 print i,mr_ids[id]
                 mr_cmds[id](wmf,i,page)
             else:
-                cmd = wmfdoc.cmd()
+                cmd = mfpage.cmd()
                 cmd.type = id
                 page.cmds.append(cmd)
                 counter+=1

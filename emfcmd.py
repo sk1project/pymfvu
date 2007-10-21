@@ -18,7 +18,7 @@
 #
 
 import pyemf
-import emfdoc
+import mfpage
 
 emr_ids = {0:'Unknown', 1:'Header',2:'Polybezier',3:'Polygone',4:'Polyline',5:'PolybezierTo',\
                  6:'PolylineTo',7:'PolyPolyline',8:'PolyPolygone',9:'SetWindowExtEx',10:'SetWindowOrgEx',\
@@ -47,273 +47,282 @@ emr_ids = {0:'Unknown', 1:'Header',2:'Polybezier',3:'Polygone',4:'Polyline',5:'P
                  120:'SetTextJustification',121:'ColorMatchToTargetW',122:'CreateColorSpaceW'}
 
 def IntersectClipRect(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 30
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Polybezier(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 2
     cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
 
 def Polygone(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 3
-    x,y = emf.records[num].values[0],emf.records[num].values[3]
-    cmd.args = (x,y),emf.records[num].aptl
+##    x,y = emf.records[num].values[0],emf.records[num].values[3]
+    cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
 
 def Polyline(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 4
     cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
 
 def PolybezierTo(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 5
     cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
 
 def PolylineTo(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 6
     cmd.args = emf.records[num].aptl
     page.cmds.append(cmd)
 
 def PolyPolyline(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 7
     x,y = emf.records[num].values[0],emf.records[num].values[3]
     cmd.args = emf.records[num].aPolyCounts,emf.records[num].aptl,(x,y)
     page.cmds.append(cmd)
     
 def PolyPolygone(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 8
     x,y = emf.records[num].values[0],emf.records[num].values[3]
     cmd.args = emf.records[num].aPolyCounts,emf.records[num].aptl,(x,y)
     page.cmds.append(cmd)
     
 def MoveTo(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 27
-    cmd.args = emf.records[num].values
+    cmd.args = emf.records[num].values[1],emf.records[num].values[0]
     page.cmds.append(cmd)
 
 def LineTo(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 54
-    cmd.args = emf.records[num].values
+    cmd.args = emf.records[num].values[1],emf.records[num].values[0]
     page.cmds.append(cmd)
 
 def ArcTo(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 55
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Ellipse(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 42
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Rectangle(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 43
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def RoundRect(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 44
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def Arc(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 45
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
     
 def Chord(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 46
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
     
 def Pie(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 47
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SetWindowExtEx(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 9
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SetWindowOrgEx(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 10
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SetViewportExtEx(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 11
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SetViewportOrgEx(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 12
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
     
 def SaveDC(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 33 #I do 'CloseFigure' here (that is not quite correct
     page.cmds.append(cmd)
 
 def RestoreDC(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 34 #I do 'CloseFigure' here (that is not quite correct
     page.cmds.append(cmd)
     
 def SetWorldTransform(emf,num,page): ##35
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 35
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def ModifyWorldTransform(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 36
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SelectObject(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 37
     cmd.args = emf.records[num].handle
     page.cmds.append(cmd)
 
 def CreatePen(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 38
     handle = emf.records[num].handle
     lbColor = emf.records[num].lopn_color
     width = emf.records[num].lopn_width
-    b = lbColor>>16
-    g = (lbColor&0xFF00)>>8
+    style = emf.records[num].lopn_style
+    f =  (lbColor>>24)&0xFF    
+    b = (lbColor>>16)&0xFF
+    g = (lbColor>>8)&0xFF
     r = lbColor&0xFF
-    cmd.args = handle,r,g,b,width
+    cmd.args = handle,r,g,b,f,width*1.,style
     page.cmds.append(cmd)
     
 def CreateBrushIndirect(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 39
     handle = emf.records[num].handle
+    lbStyle = emf.records[num].lbStyle
     lbColor = emf.records[num].lbColor
-    b = lbColor>>16
-    g = (lbColor&0xFF00)>>8
+    lbHatch = emf.records[num].lbHatch
+    f =  (lbColor>>24)&0xFF
+    b = (lbColor>>16)&0xFF
+    g = (lbColor>>8)&0xFF
     r = lbColor&0xFF
-    cmd.args = handle,r,g,b
+    cmd.args = handle,r,g,b,f,lbStyle,lbHatch
     page.cmds.append(cmd)
     
 def DeleteObject(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 40
     cmd.args = emf.records[num].handle
     page.cmds.append(cmd)
 
 def ExtCreatePen(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 95
     cmd.args = emf.records[num].handle,ord(emf.records[num].data[32]),ord(emf.records[num].data[33]),ord(emf.records[num].data[34])
     page.cmds.append(cmd)
 
 def BeginPath(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 59
     page.cmds.append(cmd)
 
 def EndPath(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 60 #I do 'CloseFigure' here (that is not quite correct
     page.cmds.append(cmd)
 
 def CloseFigure(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 61
     page.cmds.append(cmd)
     
 def FillPath(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 62
     page.cmds.append(cmd)
 
 def StrokeAndFillPath(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 63
     page.cmds.append(cmd)
 
 def StrokePath(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 64
     page.cmds.append(cmd)
     
 def SelectClipPath(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 67
     page.cmds.append(cmd)
     
 def ExtTextOutW(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 84
-    text = emf.records[num].string
-    x = emf.records[num].values[0]
-    y = emf.records[num].values[1]
-    ye = emf.records[num].values[3]
+    er = emf.records[num]
+    text = er.string
+    x = er.values[0]
+    y = er.values[1]
+    xscl = er.values[5]
+    yscl = er.values[6]
     text = unicode(text,'utf-16').encode('utf-8')
-    cmd.args = x,y,ye,text
+##    start,dx = er.unserializeList("i",er.nChars,er.data,er.unserializeOffset(er.offDx))
+    cmd.args = x,y,text,'',xscl,yscl
     page.cmds.append(cmd)
 
 def ExtCreateFontIndirectW(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 82
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
 def SetTextColor(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 24
     crColor = emf.records[num].crColor
-    b = crColor>>16
-    g = (crColor&0xFF00)>>8
+    f =  (crColor>>24)&0xFF
+    b = (crColor>>16)&0xFF
+    g = (crColor>>8)&0xFF
     r = crColor&0xFF
-    cmd.args = r,g,b
+    cmd.args = r,g,b,f
     page.cmds.append(cmd)
     
 def SetTextAlign(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 22
     cmd.args =  emf.records[num].iMode
     page.cmds.append(cmd)
 
 def SetStretchBltMode(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 21
     cmd.args =  emf.records[num].iMode
     page.cmds.append(cmd)
 
 def StretchDIBits(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 81
     cmd.args =   emf.records[num].xDest,emf.records[num].yDest,emf.records[num].cxSrc,emf.records[num].cySrc, emf.records[num].nSize-58,\
                         emf.records[num].cbBmiSrc+14,emf.records[num].cxDest,emf.records[num].cyDest,emf.records[num].dwRop,\
@@ -321,7 +330,7 @@ def StretchDIBits(emf,num,page):
     page.cmds.append(cmd)
 
 def SetPolyfillMode(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 19
     if emf.records[num].iMode == 2:
         cmd.args =  0
@@ -330,43 +339,69 @@ def SetPolyfillMode(emf,num,page):
     page.cmds.append(cmd)
     
 def SetRop2(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 20
     cmd.args =  emf.records[num].iMode
     page.cmds.append(cmd)
 
 ##---------------
 def SetBKColor(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 25
-    cmd.args =  emf.records[num].values
+    bkColor = emf.records[num].crColor
+    f =  (bkColor>>24)&0xFF
+    b = (bkColor>>16)&0xFF
+    g = (bkColor>>8)&0xFF
+    r = bkColor&0xFF
+    cmd.args = r,g,b,f
     page.cmds.append(cmd)
 
 def SetMapMode(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 17
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
     
 def SetBKMode(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 18
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
     
 def SetICMMode(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 98
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
     
 def SelectPalette(emf,num,page):
-    cmd = emfdoc.cmd()
+    cmd = mfpage.cmd()
     cmd.type = 48
     cmd.args =  emf.records[num].values
     page.cmds.append(cmd)
     
-cmds = {2:Polybezier,85:Polybezier,\
+def Header(emf,num,page):
+##    cmd = mfpage.cmd()
+##    cmd.type = 1
+##    cmd.args =  emf.records[num].values
+##    page.cmds.append(cmd)
+    arg = emf.records[num].values
+#    page.width = arg[2]-arg[0]
+#    page.height = arg[3]-arg[1]
+    pdc = page.DCs[page.curdc]
+    page.width = arg[6]/25
+    page.height = arg[7]/25
+
+##    pdc.VPx = arg[3]
+##    pdc.VPOx = arg[1]
+##    pdc.VPy = arg[2]
+##    pdc.VPOy = arg[0]
+##    pdc.VPx = (arg[2]-arg[0])/arg[19]##/100    ##arg[2]-arg[0]
+##    pdc.VPy = (arg[3]-arg[1])/arg[20]##/100    ##arg[3]-arg[1]
+##    pdc.Wx = arg[2]-arg[0]
+##    pdc.Wy = arg[3]-arg[1]
+
+cmds = {1:Header, 2:Polybezier,85:Polybezier,\
             3:Polygone,86:Polygone,\
             4:Polyline,87:Polyline,\
             5:PolybezierTo,88:PolybezierTo,\
@@ -394,7 +429,7 @@ def parse(page):
             if cmds.has_key(id):
                 cmds[id](emf,i,page)
             else:
-                cmd = emfdoc.cmd()
+                cmd = mfpage.cmd()
                 cmd.type = id
                 page.cmds.append(cmd)
                 counter+=1
