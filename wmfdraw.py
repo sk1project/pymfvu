@@ -147,14 +147,6 @@ def RestoreDC(ctx,page,i):
     ctx.restore()
     page.DCs.pop()
     page.curdc-=1
-    
-import array        
-darr = (array.array('b','\xff'+'\x00'*7),
-            array.array('b','\x80'*8),
-            array.array('b','\x01\x02\x04\x08\x10\x20\x40\x80'),
-            array.array('b','\x80\x40\x20\x10\x08\x04\x02\x01'),
-            array.array('b','\xFF'+'\x80'*7),
-            array.array('b','\x81\x42\x24\x18\x18\x24\x42\x81'))
 
 def FillPath(ctx,page,i):
     ctx.save()
@@ -167,9 +159,12 @@ def FillPath(ctx,page,i):
         eo = page.mfobjs[eonum]
         if eo.style == 2 or eo.style == 3:
             if eo.style == 2:
-                data = darr[eo.hatch]
                 w,h = 8,8
-            if eo.style == 3:
+                input = open('pat'+str(eo.hatch)+'.png')
+                imagebuf = input.read()
+                pixbufloader = gtk.gdk.PixbufLoader()
+                pixbufloader.write(imagebuf)
+            else:
                 w = eo.data[0]
                 h = eo.data[1]
                 bmpsize = struct.pack('<I',eo.data[2])
@@ -177,13 +172,13 @@ def FillPath(ctx,page,i):
                 bmp = '\x42\x4d'+bmpsize+'\x00\x00\x00\x00'+bmpshift+eo.data[4]
                 pixbufloader = gtk.gdk.PixbufLoader()
                 pixbufloader.write(bmp)
-                pixbufloader.close()
-                pixbuf = pixbufloader.get_pixbuf()
-                cs = cairo.ImageSurface(0,w,h)
-                ct = cairo.Context(cs)
-                ct2 = gtk.gdk.CairoContext(ct)
-                ct2.set_source_pixbuf(pixbuf,0,0)
-                ct2.paint()
+            pixbufloader.close()
+            pixbuf = pixbufloader.get_pixbuf()
+            cs = cairo.ImageSurface(0,w,h)
+            ct = cairo.Context(cs)
+            ct2 = gtk.gdk.CairoContext(ct)
+            ct2.set_source_pixbuf(pixbuf,0,0)
+            ct2.paint()
             if page.bkmode == 2:
                 r = page.bkcolor.r
                 g = page.bkcolor.g
@@ -198,27 +193,17 @@ def FillPath(ctx,page,i):
                 r,g,b = clr.r,clr.g,clr.b
                 
             ctx.set_source_rgba(r/255.,g/255.,b/255.,page.alpha)
-
-            if eo.style != 3:
-                cs = cairo.ImageSurface.create_for_data(data,3,w,h,1)
-                pat = cairo.SurfacePattern(cs)
-                pat.set_filter(5)
-                pat.set_extend(1)
-                ctx.save()
-                ctx.clip()
-                ctx.scale(.8/page.scale+0.5,.8/page.scale+0.5)
+            pat = cairo.SurfacePattern(cs)
+            pat.set_filter(5)
+            pat.set_extend(1)
+            matrix = cairo.Matrix(page.zoom,0,0,page.zoom,0,0)
+            pat.set_matrix(matrix)
+            ctx.clip()
+            if eo.style == 2:
                 ctx.mask(pat)
-                ctx.restore()
             else:
-                pat = cairo.SurfacePattern(cs)
-                pat.set_filter(5)
-                pat.set_extend(1)
-                ctx.save()
-                ctx.clip()
-                ctx.scale(.8/page.scale+0.5,.8/page.scale+0.5)
                 ctx.set_source(pat)
                 ctx.paint()
-                ctx.restore()
         else:
             if eo.flag !=1:
                 r,g,b = eo.clr.r,eo.clr.g,eo.clr.b
@@ -229,7 +214,7 @@ def FillPath(ctx,page,i):
             ctx.set_source_rgba(r/255.,g/255.,b/255.,page.alpha)
             ctx.fill_preserve()
     ctx.restore()
-    
+            
 capjoin = {0:1,1:2,2:0}
 cap = {0:'Flat',1:'Round',2:'Square'}
 join = {0:'Miter',1:'Round',2:'Bevel'}
