@@ -249,7 +249,7 @@ def ExtTextOut(ctx,page,i):
             layout.set_text(t)
             x0,y0 = layout.get_size()
             ctx.save()
-            if eo.orient!=0:
+            if eo.orient!=0 and page.ai ==0:
                 ctx.translate(xs+x0/2000.,ys+y0/2000.)
                 ctx.rotate(-eo.orient*math.pi/1800.) ## rotation angle is set in 10th of degree
                 ctx.translate(-xs-x0/2000.,-ys-y0/2000.)

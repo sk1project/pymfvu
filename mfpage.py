@@ -32,6 +32,7 @@ class Page:
     def __init__(self):
         self.type = 0
         self.alpha = 1
+        self.ai = 1
         self.fname = ''
         self.hadj = None
         self.hd = hexdump.hexdump()

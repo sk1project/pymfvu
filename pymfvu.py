@@ -57,6 +57,7 @@ ui_info = \
         <menuitem action='Records'/>
         <menuitem action='Hexdump'/>
         <menuitem action='Alpha'/>
+        <menuitem action='AI'/>
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
@@ -160,6 +161,10 @@ class ApplicationMainWindow(gtk.Window):
             "_Quit", "<control>Q",                     # label, accelerator
             "Quit",                                    # tooltip
             self.activate_quit ),
+         ("AI", gtk.STOCK_STRIKETHROUGH,                    # name, stock id
+            "AI bug _Workaround", "<control>W",                     # label, accelerator
+            "Toggle workarounds for known issues with files made with AI",                                    # tooltip
+            self.activate_ai),
           ( "Alpha", gtk.STOCK_ZOOM_IN,                    # name, stock id
             "Alpha", "<control>T",                     # label, accelerator
             "Toggle semi-transparency of FillPath",                                    # tooltip
@@ -291,7 +296,19 @@ class ApplicationMainWindow(gtk.Window):
             self.das[pn].hide()
             self.das[pn].show()
             self.notebook.set_current_page(pn)
-    
+
+    def activate_ai(self, action):
+        pn = self.notebook.get_current_page()
+        if pn != -1:
+            if self.das[pn].page.ai == 1:
+                self.das[pn].page.ai = 0
+            else:
+                self.das[pn].page.ai = 1
+            self.das[pn].hide()
+            self.das[pn].show()
+            self.notebook.set_current_page(pn)
+
+            
     def activate_about(self, action):
         dialog = gtk.AboutDialog()
         dialog.set_name("pywmfvu %s\nWMF/EMF file viewer"%__version__)
