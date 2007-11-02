@@ -242,7 +242,7 @@ def ExtTextOut(ctx,page,i):
         ctx.set_line_width(size*0.06)
         ctx.stroke()
     ctx.move_to(xs,ys)
-    if dxsum>0 or eo.orient!=0:
+    if dxsum>0 or (eo.orient!=0 and page.ai==0):
         ctx.save()
         for i in range(lentext):
             t = textstr[i]

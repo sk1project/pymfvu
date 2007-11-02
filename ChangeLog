@@ -1,3 +1,7 @@
+2007-11-02  Valek Filippov  <frob@df.ru>
+
+    * wmftext.py,mfdraw.py: fixed bug with Orientation checking.
+
 2007-11-01  Valek Filippov  <frob@df.ru>
 
     * Release 0.0.9
