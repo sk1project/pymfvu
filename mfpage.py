@@ -37,6 +37,7 @@ class Page:
         self.hadj = None
         self.hd = hexdump.hexdump()
         self.hdv = 0
+        self.hdv2 = 0
         self.curdc = 0
         self.DCs = []
         dc = DC()

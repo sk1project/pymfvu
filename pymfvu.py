@@ -34,11 +34,11 @@ import hexdump
 import struct
 import mfpage
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 __author__ = "Valek Filippov"
 __url__ = "http://www.sk1project.org"
 __description__ = "Python Windows and Enchanced Metafile viewer"
-__keywords__ = "graphics, scalable, vector, image, clipart, wmf"
+__keywords__ = "graphics, scalable, vector, image, clipart, wmf, emf"
 __license__ = "GPL v3"
 
 
@@ -58,6 +58,7 @@ ui_info = \
         <menuitem action='Hexdump'/>
         <menuitem action='Alpha'/>
         <menuitem action='AI'/>
+        <menuitem action='Slider'/>
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
@@ -177,6 +178,11 @@ class ApplicationMainWindow(gtk.Window):
             "_Hexdump", "<control>D",                     # label, accelerator
             "Toggle hexdump window",                                    # tooltip
             self.activate_hexdump),
+          ( "Slider", None,                    # name, stock id
+            "S_lider","<control>L",                      # label, accelerator
+            "Slider to play file shape by shape",                             # tooltip
+            self.activate_slider),
+            
           ( "About", gtk.STOCK_ABOUT,                             # name, stock id
             "_About", "<control>A",                    # label, accelerator
             "About",                                   # tooltip
@@ -200,8 +206,8 @@ class ApplicationMainWindow(gtk.Window):
             pg.file.loadmem(buf)
             pg.parse()
             pf = pg.Face
-            pg.hadj = 1
             nums = len(pg.cmds)
+            pg.hadj.value = nums
             idx = 0
             for i in range(nums):
                 spct = pg.cmds[i].type
@@ -234,6 +240,17 @@ class ApplicationMainWindow(gtk.Window):
             surface.finish()
 ##        except:
 ##            print 'Something goes wrong'
+
+    def activate_slider(self, action):
+        pn = self.notebook.get_current_page()
+        if pn != -1:
+            if self.das[pn].page.hdv2 == 1:
+                self.hscale.hide()
+                self.das[pn].page.hdv2 = 0
+                self.das[pn].hadj.value = len(self.das[pn].doc.pages[self.das[pn].pagenum].shapes[0].ShapeList)
+            else:
+                self.hscale.show()
+                self.das[pn].page.hdv2 = 1
         
         
     def activate_hexdump(self, action):
@@ -495,15 +512,18 @@ class ApplicationMainWindow(gtk.Window):
                 vbox.pack_start(scrolled, expand=True, fill=True, padding=0)
                 self.das[dnum].page.hadj = gtk.Adjustment(0.0, 0.0,  len(self.das[dnum].page.cmds)+hadjshift, 0.1, 1.0, 1.0)
                 self.das[dnum].page.hadj.connect("value_changed", self.adj_changed)
-                hscale = gtk.HScale(self.das[dnum].page.hadj)
-                hscale.set_digits(0)
-                vbox.pack_end(hscale, expand=False, fill=True, padding=0)
+                pg.hadj.value = nums
+                self.hscale = gtk.HScale(self.das[dnum].page.hadj)
+                self.hscale.set_digits(0)
+                vbox.pack_end(self.hscale, expand=False, fill=True, padding=0)
                 vpaned.pack2(self.das[dnum].page.hd.vbox,resize=False,shrink= True)                
                 vpaned.pack1(vbox, resize=True,shrink= False)
                 self.notebook.append_page(vpaned,label)
                 self.notebook.show_tabs = True
-                vbox.show_all()
+		scrolled.show()
+                vbox.show()
                 vpaned.show()
+                self.das[dnum].show()
                 self.notebook.show()
 ##            except:
 ##                print 'Something wrong with a file.' ## FIXME! Bring up some dialog?

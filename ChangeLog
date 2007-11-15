@@ -1,3 +1,7 @@
+2007-11-14  Valek Filippov  <frob@df.ru>
+
+    * pymfvu.py, mfpage.py: slider was ported from vsdviewer.
+
 2007-11-02  Valek Filippov  <frob@df.ru>
 
     * wmftext.py,mfdraw.py: fixed bug with Orientation checking.
