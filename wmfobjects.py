@@ -75,6 +75,7 @@ def CreateFontIndirect(ctx,page,i):
     eo.italic = page.cmds[i].args[1][5]
     eo.under = page.cmds[i].args[1][6]
     eo.strike = page.cmds[i].args[1][7]
+    eo.charset = page.cmds[i].args[1][8]
     font = page.cmds[i].args[2]
     pos = font.find('\x00')
     font = font[0:pos]

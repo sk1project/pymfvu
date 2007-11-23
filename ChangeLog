@@ -1,3 +1,12 @@
+2007-11-20  Valek Filippov  <frob@df.ru>
+
+    * eo.charset was lost accidently somehow.
+
+2007-11-19  Valek Filippov  <frob@df.ru>
+
+    * Release 0.0.10.
+    * Most likely the last release with naive object model.
+    
 2007-11-14  Valek Filippov  <frob@df.ru>
 
     * pymfvu.py, mfpage.py: slider was ported from vsdviewer.
