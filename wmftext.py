@@ -232,13 +232,29 @@ def ExtTextOut(ctx,page,i):
         ctx.restore()
     ctx.set_source_rgba(page.txtclr.r/255.,page.txtclr.g/255.,page.txtclr.b/255.,1)
     if eo.under == 1:
+        if dxsum > 0:
+            xf = xs+dxsum
+            t = text[len(text)-1]
+            layout.set_text(t)
+            x0,y0 = layout.get_size()
+            xf+=x0/1000.
+        else:
+            xf = xe
         ctx.move_to(xs,ys+ysize*page.height/1.05)
-        ctx.line_to(xe,ys+ysize*page.height/1.05)
+        ctx.line_to(xf,ys+ysize*page.height/1.05)
         ctx.set_line_width(size*0.06)
         ctx.stroke()
     if eo.strike == 1:
+        if dxsum > 0:
+            xf = xs+dxsum
+            t = text[len(text)-1]
+            layout.set_text(t)
+            x0,y0 = layout.get_size()
+            xf+=x0/1000.
+        else:
+            xf = xe
         ctx.move_to(xs,ys+ysize*page.height/2.)
-        ctx.line_to(xe,ys+ysize*page.height/2.)
+        ctx.line_to(xf,ys+ysize*page.height/2.)
         ctx.set_line_width(size*0.06)
         ctx.stroke()
     ctx.move_to(xs,ys)
@@ -253,7 +269,7 @@ def ExtTextOut(ctx,page,i):
                 ctx.translate(xs+x0/2000.,ys+y0/2000.)
                 ctx.rotate(-eo.orient*math.pi/1800.) ## rotation angle is set in 10th of degree
                 ctx.translate(-xs-x0/2000.,-ys-y0/2000.)
-                xup = x0*math.sin(eo.orient*math.pi/1800.)/1000.+y0*math.cos(eo.orient*math.pi/1800.)/1000.
+                xup = abs(x0*math.sin(eo.orient*math.pi/1800.)/1000.+y0*math.cos(eo.orient*math.pi/1800.)/1000.)
             ctx.show_layout(layout)
             if dxsum >0:
                 xs=xs+dxlist[i]*1.

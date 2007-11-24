@@ -1,3 +1,8 @@
+2007-11-23  Valek Filippov  <frob@df.ru>
+
+    * Fixed under/overstrike line length calculation in case of simultaneous using with dxarray or Orient.
+    * Fixed Orient shift position calculation for >pi/2 angles.
+
 2007-11-20  Valek Filippov  <frob@df.ru>
 
     * eo.charset was lost accidently somehow.

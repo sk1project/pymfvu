@@ -569,7 +569,7 @@ class _MR:
                             ('h','rclLeft'),
                             ('h','rclTop'),
                             ('h','rclRight'),
-                            ('h','rclBotttom'),
+                            ('h','rclBottom'),
                             ('h','Inch'),                       #num of metafile units per inch
                             ('i','Reserved'),                #always 0
                             ('h','Checksum')]
