@@ -1,3 +1,7 @@
+2007-11-25  Valek Filippov  <frob@df.ru>
+
+    * Release 0.0.11
+
 2007-11-23  Valek Filippov  <frob@df.ru>
 
     * Fixed under/overstrike line length calculation in case of simultaneous using with dxarray or Orient.
@@ -9,7 +13,7 @@
 
 2007-11-19  Valek Filippov  <frob@df.ru>
 
-    * Release 0.0.10.
+    * Release 0.0.10
     * Most likely the last release with naive object model.
     
 2007-11-14  Valek Filippov  <frob@df.ru>
