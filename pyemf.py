@@ -2047,6 +2047,14 @@ class _EMR:
     # Stub class for extended pen
     class _EXTCREATEPEN(_CREATEPALETTE):
         emr_id=95
+        emr_typedef=[
+                ('i','lopnStyle'),
+                ('i','lopnWidth'),
+                ('i','lbStyle'),
+                ('i','lbColor'),
+                ('i','lbHatch'),
+                ('i','StyleCont'),
+                ('i','lpStyle')]
         pass
 
 

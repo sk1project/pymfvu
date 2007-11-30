@@ -87,6 +87,39 @@ def IntersectClipRect(ctx,page,i):
     ctx.line_to(r,t)
     ctx.close_path()
     ctx.clip()
+    path = mfpage.Path()
+    pp = mfpage.PathPoint()
+    pp.type = 1
+    p = mfpage.Point()
+    p.x,p.y = l,t
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 2
+    p = mfpage.Point()
+    p.x,p.y = l,b
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 2
+    p = mfpage.Point()
+    p.x,p.y = r,b
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 2
+    p = mfpage.Point()
+    p.x,p.y = r,t
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 4
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    clip = mfpage.Clip()
+    clip.type = 0
+    clip.path = path
+    page.DCs[page.curdc].cliplist.append(clip)
     
 def SetWindowOrgEx(ctx,page,i):
     x,y = page.cmds[i].args
@@ -124,6 +157,7 @@ def SaveDC(ctx,page,i):
     page.DCs[page.curdc+1].Wy = page.DCs[page.curdc].Wy 
     page.DCs[page.curdc+1].x = page.DCs[page.curdc].x 
     page.DCs[page.curdc+1].y = page.DCs[page.curdc].y 
+    page.DCs[page.curdc+1].cliplist = page.DCs[page.curdc].cliplist
     page.curdc+=1
     print 'SaveDc'
 

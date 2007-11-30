@@ -34,7 +34,7 @@ import hexdump
 import struct
 import mfpage
 
-__version__ = "0.0.10"
+__version__ = "0.0.12"
 __author__ = "Valek Filippov"
 __url__ = "http://www.sk1project.org"
 __description__ = "Python Windows and Enchanced Metafile viewer"

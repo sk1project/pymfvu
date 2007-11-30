@@ -77,15 +77,75 @@ class Page:
         pass
 
 class DC:
-    VPx = 1.
-    VPy = 1.
-    VPOx = 0.
-    VPOy = 0.
-    Wx = 1.
-    Wy = 1.
-    x = 0.
-    y = 0.
+    def __init__(self):
+        self.VPx = 1.
+        self.VPy = 1.
+        self.VPOx = 0.
+        self.VPOy = 0.
+        self.Wx = 1.
+        self.Wy = 1.
+        self.x = 0.
+        self.y = 0.
+        self.cliplist = []
+    
+    def usage():
+        class_cliplist = Clip()
+
+class Clip:
+    path = []
+    type = 0  ## 0 -- Intersect, 1 -- Exclude
+
+class Path:
+    def __init__(self):
+        self.pplist = []
+        self.clip = 0
+  
+    def usage(self):
+        class_pplist = PathPoint()
+
+    def prep(self,ctx,xo=0,yo=0):
+        pathdraw = {1:self.pathmove,2:self.pathline,3:self.pathcurve,4:self.pathclose}
+        for i in self.pplist:
+            pathdraw[i.type](i,ctx,xo,yo)
+    
+    def pathmove(self,i,ctx,xo,yo):
+        i.pts[0].x+=xo
+        i.pts[0].y+=yo
+        ctx.move_to(i.pts[0].x,i.pts[0].y)
+##        print 'Path moveto:',i.pts[0].x+xo,i.pts[0].y+yo
+
+    def pathline(self,i,ctx,xo,yo):
+        i.pts[0].x+=xo
+        i.pts[0].y+=yo
+        ctx.line_to(i.pts[0].x,i.pts[0].y)
+##        print 'Path lineto:',i.pts[0].x+xo,i.pts[0].y+yo
+
+    def pathcurve(self,i,ctx,xo,yo):
+        i.pts[0].x+=xo
+        i.pts[0].y+=yo
+        i.pts[1].x+=xo
+        i.pts[1].y+=yo
+        i.pts[2].x+=xo
+        i.pts[2].y+=yo
+        ctx.curve_to(i.pts[0].x,i.pts[0].y,i.pts[1].x,i.pts[1].y,i.pts[2].x,i.pts[2].y)
         
+    def pathclose(self,i,ctx,xo,yo):
+        ctx.close_path()
+##        print 'Path close'
+        
+class PathPoint:
+    def __init__(self):
+        self.type = 0 ## 0 - N/A, 1 - Move, 2 - Line, 3 - Curve, 4 - Close
+        self.pts = []
+        
+    def usage(self):
+        class_pts = Point()
+        
+class Point:
+    def __init__(self):
+        self.x = 0.
+        self.y = 0.   
+  
 class color:
     r = 0.
     g = 0.

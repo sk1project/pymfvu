@@ -38,6 +38,7 @@ def render(self,ctx):
     page.txtclr.r,page.txtclr.g,page.txtclr.b = 0,0,0
     page.bkcolor.r,page.bkcolor.g,page.bkcolor.b = 255.,255.,255.
     page.txtalign = 0
+    page.DCs[page.curdc].cliplist = []
     ctx.set_fill_rule(1) ## seems to be EMF default
     if page.hadj == 1:
         nums = len(page.cmds)
@@ -97,6 +98,34 @@ def SelectPalette(ctx,page,i):
 def SelectClipRegion(ctx,page,i):
     pass
 
+def ExcludeClipRect(ctx,page,i):
+    ctx.reset_clip()
+    b,r,t,l = page.cmds[i].args
+    l,t = convcoords(page,ctx,l,t)
+    r,b = convcoords(page,ctx,r,b)
+    for j in page.DCs[page.curdc].cliplist:
+        j.path.prep(ctx,0,0)
+        ctx.move_to(l,t)
+        ctx.line_to(l,b)
+        ctx.line_to(r,b)
+        ctx.line_to(r,t)
+        ctx.close_path()
+        ctx.clip()
+    for j in page.DCs[page.curdc].cliplist:
+        j.path.prep(ctx,0,0)
+        ctx.clip()
+    
+def OffsetClipRgn(ctx,page,i):
+    y,x = page.cmds[i].args
+    x,y = convcoords(page,ctx,x,y)
+    x0,y0 = convcoords(page,ctx,0,0)
+    x = x - x0
+    y = y - y0
+    ctx.reset_clip()
+    for j in page.DCs[page.curdc].cliplist:
+        j.path.prep(ctx,x,y)
+        ctx.clip()
+    
 def IntersectClipRect(ctx,page,i):
     b,r,t,l = page.cmds[i].args
     l,t = convcoords(page,ctx,l,t)
@@ -107,7 +136,40 @@ def IntersectClipRect(ctx,page,i):
     ctx.line_to(r,t)
     ctx.close_path()
     ctx.clip()
-    
+    path = mfpage.Path()
+    pp = mfpage.PathPoint()
+    pp.type = 1
+    p = mfpage.Point()
+    p.x,p.y = l,t
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 2
+    p = mfpage.Point()
+    p.x,p.y = l,b
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 2
+    p = mfpage.Point()
+    p.x,p.y = r,b
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 2
+    p = mfpage.Point()
+    p.x,p.y = r,t
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    pp = mfpage.PathPoint()
+    pp.type = 4
+    pp.pts.append(p)
+    path.pplist.append(pp)
+    clip = mfpage.Clip()
+    clip.type = 0
+    clip.path = path
+    page.DCs[page.curdc].cliplist.append(clip)
+
 def SetWindowOrgEx(ctx,page,i):
     x,y = page.cmds[i].args
     page.DCs[page.curdc].x = x
@@ -368,8 +430,8 @@ drawcmds  = {
             521:SetTextColor, ##522:SetTextJustification, 
             
             ##298:'InvertRegion', 299:'PaintRegion',
-            300:SelectClipRegion, ##544:'OffsetClipRgn', 552:'FillRegion', 1065:'FrameRegion', 1791:'CreateRegion',
-            ##1045:'ExcludeClipRect',
+            300:SelectClipRegion, 544:OffsetClipRgn, ##552:'FillRegion', 1065:'FrameRegion', 1791:'CreateRegion',
+            1045:ExcludeClipRect,
             1046:IntersectClipRect,
             523:SetWindowOrgEx, 524:SetWindowExtEx,525:SetViewportOrgEx, 526:SetViewportExtEx, ##527:'OffsetWindowOrg', 529:'OffsetViewportOrgEx',
             ##1040:'ScaleWindowExtEx', 1042:'ScaleViewportExtEx',

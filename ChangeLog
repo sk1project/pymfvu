@@ -1,3 +1,9 @@
+2007-11-29 Valek Filippov  <frob@df.ru>
+
+    * Release 0.0.12
+    * Clipping was reworked to support OffsetClipRgn and ExcludeClipRect
+    * Testing files for clipping were added.
+
 2007-11-25  Valek Filippov  <frob@df.ru>
 
     * Release 0.0.11

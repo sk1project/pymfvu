@@ -54,6 +54,18 @@ def IntersectClipRect(emf,num,page):
     cmd.args = emf.records[num].values
     page.cmds.append(cmd)
 
+def ExcludeClipRect(emf,num,page):
+    cmd = mfpage.cmd()
+    cmd.type = 1045
+    cmd.args = emf.records[num].values
+    page.cmds.append(cmd)
+
+def OffsetClipRgn(emf,num,page):
+    cmd = mfpage.cmd()
+    cmd.type = 544
+    cmd.args = emf.records[num].values
+    page.cmds.append(cmd)
+
 def Polygone(emf,num,page):
     cmd = mfpage.cmd()
     cmd.type = 804
@@ -412,8 +424,9 @@ mr_cmds  = {1:Aldus_Header,4:Header,
             ## 264:'SetTextCharExtra',
             302:SetTextAlign, 513:SetBKColor, 521:SetTextColor, ##522:SetTextJustification, 
             
-            ##298:'InvertRegion', 299:'PaintRegion', 300:'SelectClipRegion',544:'OffsetClipRgn', 552:'FillRegion', 1065:'FrameRegion', 1791:'CreateRegion',
-            ##1045:'ExcludeClipRect',
+            ##298:'InvertRegion', 299:'PaintRegion', 300:'SelectClipRegion',
+            544:OffsetClipRgn, ##552:'FillRegion', 1065:'FrameRegion', 1791:'CreateRegion',
+            1045:ExcludeClipRect,
             1046:IntersectClipRect,
             523:SetWindowOrgEx, 524:SetWindowExtEx,525:SetViewportOrgEx, 526:SetViewportExtEx, ##527:'OffsetWindowOrg', 529:'OffsetViewportOrgEx',
             ##1040:'ScaleWindowExtEx', 1042:'ScaleViewportExtEx',
