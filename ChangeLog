@@ -1,91 +1,57 @@
-2007-11-29 Valek Filippov  <frob@df.ru>
+2007-11-30  Valek Filippov  <frob@df.ru>
 
-    * Release 0.0.12
-    * Clipping was reworked to support OffsetClipRgn and ExcludeClipRect
-    * Testing files for clipping were added.
+    * Fix slider to work on all pages.
+    * Fixed PathCopying problem.
+    
+2007-11-29  Valek Filippov  <frob@df.ru>
 
+    * OffsetCLipRgn implementation started
+    
+2007-11-28  Valek Filippov  <frob@df.ru>
+
+    * Naive IntersectClipRect was implemented in WMF.
+       Working on a feature rich implementation.
+    * Not fool-proof implementation was made.
+
+2007-11-26  Valek Filippov  <frob@df.ru>
+
+    * Polybezier/PolybezierTo were added
+    * Arc/ArcTo, Polyline/PolylineTo, Polybezier/PolybezierTo differences were understood and implemented.
+    * Path-related commands were implemented. class Path and relevant subclasses were added to gmodel.
+    * Fixes in Ellipse, Line, Rectangle etc coords parsing.
+    
 2007-11-25  Valek Filippov  <frob@df.ru>
 
-    * Release 0.0.11
+    * EMF partially works now.
+    * pyemf: _ExtCreatePen class was changed.
 
+    
 2007-11-23  Valek Filippov  <frob@df.ru>
 
-    * Fixed under/overstrike line length calculation in case of simultaneous using with dxarray or Orient.
-    * Fixed Orient shift position calculation for >pi/2 angles.
+    * Text align h/v, under/overstrike and escapement support was added.
+    * Text dxarray and cpupdate support was added.
+    * Calculation of under/overstrike line length was fixed for dxarray and/or orientation cases.
+    * dwROP 0xcc0020 bitmap works now.
+    * dwROPs 0x8800C6 and 0xEE0086 seems to work now.
+    * Aldus header page w/h parsing was implemented.
+    * In case there is no WxH and/or WindowOrg/Ext in the file use page.zoom = 1 to prevent crash.
 
-2007-11-20  Valek Filippov  <frob@df.ru>
+2007-11-22  Valek Filippov  <frob@df.ru>
 
-    * eo.charset was lost accidently somehow.
+    * Palette color support was added.
+    * Line cap/join support was added.
+    * Dash/dots support was added.
+    * BKMode/BKColor for pen support was added.
+    * Brush patterns/bitmap patterns and BKMode/BKColor support was added
+    * Initial support for Bitmaps was implemented.
+    * Initial support for text was implemented.
+    
+    
+2007-11-21  Valek Filippov  <frob@df.ru>
 
+    * MoveTo, LineTo, Rect, RoundRect, Polyline, Polygone, PolyPolygone, ArcTo, Pie, Chord and Ellipse were implemented.
+    * Null Pen, Null Brush, SetPolyfillMode, Pen width were implemented.
+    
 2007-11-19  Valek Filippov  <frob@df.ru>
 
-    * Release 0.0.10
-    * Most likely the last release with naive object model.
-    
-2007-11-14  Valek Filippov  <frob@df.ru>
-
-    * pymfvu.py, mfpage.py: slider was ported from vsdviewer.
-
-2007-11-02  Valek Filippov  <frob@df.ru>
-
-    * wmftext.py,mfdraw.py: fixed bug with Orientation checking.
-
-2007-11-01  Valek Filippov  <frob@df.ru>
-
-    * Release 0.0.9
-    * Added workaround for rotated text bug in Adobe Illustrator ('On' by default).
-
-2007-10-24  Valek Filippov  <frob@df.ru>
-
-    * Patterns Fill code was changed to use *.png instead of arrays.
-
-2007-10-21  Valek Filippov  <frob@df.ru>
-
-    * Release 0.0.8
-    * mfpage.py, mfdraw.py: start to merge WMF and EMF code
-    * sort of batch-mode was added
-    
-
-2007-10-03  Valek Filippov  <frob@df.ru>
-
-    * wmfdraw.py, wmffigs.py: synced back from vsdviewer.
-    * wmfdoc.py, pymfvu.py: moved page size detection, backported scrolled/zoom from vsdviewer.
-    * pymfvu.py: fixed hexdump show/hide/update bug.
-    
-2007-09-24  Valek Filippov  <frob@df.ru>
-
-    * wmftext.py: Added reencoding of text from font encoding to UTF-8.
-    
-2007-09-23  Valek Filippov  <frob@df.ru>
-
-    * wmfdraw.py, emfdraw.py, emfcmd.py: Added IntersectClipRegion.
-    
-2007-09-14  Valek Filippov  <frob@df.ru>
-
-    * wmffigs.py, emfdraw.py: Fixed arc/pie/chors for 'intentionally wrong' cases.
-    * test/*: added dir with testing files and screenshots of them.
-    
-2007-09-12  Valek Filippov  <frob@df.ru>
-
-    Version 0.0.4
-    * pywmf.py: Improved EOF checking
-    * wmffigs.py, emfdraw.py: Fixed roundrect for 'intentionally wrong' cases, some code clean-up
-    * emf*: added license statement
-    * pyemf.py: added while Rob will make a release with load_mem function
-
-2007-09-04  Valek Filippov  <frob@df.ru>
-
-    * Version 0.0.3.
-      Merged with pyemfvu and renamed to pymfvu.
-      Implemented line cap/join.
-      Implemented palette.
-      Hexdump is switched off by default.
-      Reimplemented WindowOrg/Ext.
-  
-2007-08-18  Valek Filippov  <frob@df.ru>
-
-    * wmftext.py: Fixed Symbol font translation.
-    
-2007-08-17  Valek Filippov  <frob@df.ru>
-
-    0.0.1 version has been published.
+    * Started new model implementation.

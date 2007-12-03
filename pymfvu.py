@@ -24,21 +24,19 @@
 #
 import sys
 import gtk
-import wmfcmd
-import emfcmd
 import pango
 import cairo
-import pangocairo
 import string
-import hexdump
 import struct
-import mfpage
+import gmodel
+import parser
+import eparser
 
-__version__ = "0.0.12"
+__version__ = "0.1.0"
 __author__ = "Valek Filippov"
 __url__ = "http://www.sk1project.org"
 __description__ = "Python Windows and Enchanced Metafile viewer"
-__keywords__ = "graphics, scalable, vector, image, clipart, wmf, emf"
+__keywords__ = "graphics, scalable, vector, image, clipart, wmf"
 __license__ = "GPL v3"
 
 
@@ -54,11 +52,8 @@ ui_info = \
       <menuitem action='Quit'/>
     </menu>
     <menu action='ViewMenu'>
-        <menuitem action='Records'/>
-        <menuitem action='Hexdump'/>
-        <menuitem action='Alpha'/>
-        <menuitem action='AI'/>
         <menuitem action='Slider'/>
+        <menuitem action='Infowin'/>
     </menu>
     <menu action='HelpMenu'>
       <menuitem action='About'/>
@@ -125,20 +120,9 @@ class ApplicationMainWindow(gtk.Window):
         self.das = {}
         self.fname = ''
         if len(sys.argv) > 1:
-            if sys.argv[1] == 'b':
-                print 'Batch mode switch was found'
-                for i in range(len(sys.argv)-2):
-                    fname = sys.argv[i+2]
-                    self.batch_open(fname)
-            else:
-                for i in range(len(sys.argv)-1):
-                    self.fname = sys.argv[i+1]
-                    self.activate_open()
-
-##        if len(sys.argv) > 1:
-##            for i in range(len(sys.argv)-1):
-##                self.fname = sys.argv[i+1]
-##                self.activate_open()
+         for i in range(len(sys.argv)-1):
+            self.fname = sys.argv[i+1]
+            self.activate_open()
  
     def __create_action_group(self):
         # GtkActionEntry
@@ -162,27 +146,14 @@ class ApplicationMainWindow(gtk.Window):
             "_Quit", "<control>Q",                     # label, accelerator
             "Quit",                                    # tooltip
             self.activate_quit ),
-         ("AI", gtk.STOCK_STRIKETHROUGH,                    # name, stock id
-            "AI bug _Workaround", "<control>W",                     # label, accelerator
-            "Toggle workarounds for known issues with files made with AI",                                    # tooltip
-            self.activate_ai),
-          ( "Alpha", gtk.STOCK_ZOOM_IN,                    # name, stock id
-            "Alpha", "<control>T",                     # label, accelerator
-            "Toggle semi-transparency of FillPath",                                    # tooltip
-            self.activate_alpha),
-          ( "Records", gtk.STOCK_INDEX,                    # name, stock id
-            "_Records", "<control>R",                     # label, accelerator
-            "Toggle records window",                                    # tooltip
-            self.activate_records),
-          ( "Hexdump", gtk.STOCK_FIND_AND_REPLACE,                    # name, stock id
-            "_Hexdump", "<control>D",                     # label, accelerator
-            "Toggle hexdump window",                                    # tooltip
-            self.activate_hexdump),
           ( "Slider", None,                    # name, stock id
             "S_lider","<control>L",                      # label, accelerator
             "Slider to play file shape by shape",                             # tooltip
             self.activate_slider),
-            
+          ( "Infowin", None,                    # name, stock id
+            "Info_win","<control>W",                      # label, accelerator
+            "Info about shapes",                             # tooltip
+            self.activate_infowin),
           ( "About", gtk.STOCK_ABOUT,                             # name, stock id
             "_About", "<control>A",                    # label, accelerator
             "About",                                   # tooltip
@@ -193,138 +164,27 @@ class ApplicationMainWindow(gtk.Window):
         action_group.add_actions(entries)
         return action_group
 
-    def batch_open(self, fname):
-            input = open(fname)
-            buf = input.read()
-            [sig] = struct.unpack('i',buf[40:44])
-            print 'Signature:',sig
-##            try:
-            if sig == 0x464D4520:
-                pg = mfpage.emfPage()
-            else:
-                pg = mfpage.wmfPage()
-            pg.file.loadmem(buf)
-            pg.parse()
-            pf = pg.Face
-            nums = len(pg.cmds)
-            pg.hadj.value = nums
-            idx = 0
-            for i in range(nums):
-                spct = pg.cmds[i].type
-                if spct == 523:
-                    pg.DCs[0].x,pg.DCs[0].y = pg.cmds[i].args
-                    idx+=1
-                if spct == 524:
-                    pg.DCs[0].Wx,pg.DCs[0].Wy = pg.cmds[i].args
-                    idx+=1
-                if idx == 2:
-                    pg.width = abs(pg.DCs[0].Wx) ##- self.page.DCs[0].x)
-                    pg.height = abs(pg.DCs[0].Wy) ##- self.page.DCs[0].y)
-                    break
 
-            pos = fname.rfind('/')
-            if pos !=-1:
-                fname = fname[pos+1:]
-            pos = fname.rfind('.')
-            if pos !=-1:
-                fname = fname[0:pos]
-            fname = fname+'.svg'
-            surface = cairo.SVGSurface(fname,pg.width*1.2,pg.height*1.2)
-            ct = cairo.Context(surface)
-            cr = pangocairo.CairoContext(ct)
-            cr.save()
-            pf.render(cr,pf.page)
-            cr.restore()
-            cr.show_page()
-            surface.flush()
-            surface.finish()
-##        except:
-##            print 'Something goes wrong'
+    def activate_infowin(self, action):
+        pn = self.notebook.get_current_page()
+        if pn != -1:
+            if self.das[pn].page.hdv1 == 1:
+                self.scrolled2.hide_all()
+                self.das[pn].page.hdv1 = 0
+            else:
+                self.scrolled2.show_all()
+                self.das[pn].page.hdv1 = 1
 
     def activate_slider(self, action):
         pn = self.notebook.get_current_page()
         if pn != -1:
             if self.das[pn].page.hdv2 == 1:
-                self.hscale.hide()
+                self.das[pn].page.hscale.hide()
                 self.das[pn].page.hdv2 = 0
-                self.das[pn].hadj.value = len(self.das[pn].doc.pages[self.das[pn].pagenum].shapes[0].ShapeList)
+                self.das[pn].page.hadj.value = len(self.das[pn].page.objs)
             else:
-                self.hscale.show()
+                self.das[pn].page.hscale.show()
                 self.das[pn].page.hdv2 = 1
-        
-        
-    def activate_hexdump(self, action):
-        pn = self.notebook.get_current_page()
-        if pn != -1:
-            if self.das[pn].page.hdv == 1:
-                self.das[pn].page.hd.vbox.hide()
-                self.das[pn].page.hdv = 0
-            else:
-                self.das[pn].page.hd.vbox.show_all()
-                self.das[pn].page.hdv = 1
-            data = self.das[pn].page.file.records[int(self.das[pn].page.hadj.value)].data
-            self.update_hexdump(data)
-                
-        
-    def activate_records(self, action):
-        pn = self.notebook.get_current_page()
-        if pn != -1:
-            string = ''
-            offset = 0
-            records = self.das[pn].page.file.records
-            print 'Records: ',len(records)
-            window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            window.set_resizable(True)
-            window.set_default_size(650, 700)
-            window.set_title("List of Records: "+self.das[pn].page.fname)
-            window.set_border_width(0)
-            sw = gtk.ScrolledWindow()
-            sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-            textview = gtk.TextView()
-            textview.set_justification(0)
-            textbuffer = textview.get_buffer()
-            textbuffer.create_tag("monospace", family="monospace")
-            iter_label = textbuffer.get_iter_at_offset(0)
-            for i in range(len(records)):
-                textbuffer.insert_with_tags_by_name(iter_label, '%u  %04x   %s %s\n'%(i,offset,records[i].__class__.__name__.lstrip('_'),records[i].format.fmt),"monospace")
-                if records[i].format.typedef:
-                    for item in records[i].format.typedef:
-                        typecode=item[0]
-                        name=item[1]
-                        val=records[i].str_decode(typecode,name)
-                        try:
-                            textbuffer.insert_with_tags_by_name(iter_label, "\t%-20s: %s\n" % (name,val),"monospace")
-                        except:
-                            pass		
-            sw.add(textview)
-            sw.show()
-            textview.show()
-            window.add(sw)
-            window.show()
-            pass
-        
-    def activate_alpha(self, action):
-        pn = self.notebook.get_current_page()
-        if pn != -1:
-            if self.das[pn].page.alpha == 1:
-                self.das[pn].page.alpha = 0.5
-            else:
-                self.das[pn].page.alpha = 1
-            self.das[pn].hide()
-            self.das[pn].show()
-            self.notebook.set_current_page(pn)
-
-    def activate_ai(self, action):
-        pn = self.notebook.get_current_page()
-        if pn != -1:
-            if self.das[pn].page.ai == 1:
-                self.das[pn].page.ai = 0
-            else:
-                self.das[pn].page.ai = 1
-            self.das[pn].hide()
-            self.das[pn].show()
-            self.notebook.set_current_page(pn)
-
             
     def activate_about(self, action):
         dialog = gtk.AboutDialog()
@@ -352,54 +212,6 @@ class ApplicationMainWindow(gtk.Window):
                         self.das[i] = self.das[i+1]
                 del self.das[len(self.das)-1]
         return
-
-    def update_hexdump(self,data):
-        pn = self.notebook.get_current_page()
-        if self.das[pn].page.hdv == 1: ## if hd is visible
-            hd = self.das[pn].page.hd
-            str_addr = ''
-            str_hex = ''
-            str_asc = ''
-            for line in range(0, len(data), 16):
-                str_addr+="%07x: "%line
-                end = min(16, len(data) - line)
-                for byte in range(0, 15):
-                    if byte < end:
-                        str_hex+="%02x " % ord(data[line + byte])
-                        if ord(data[line + byte]) < 32 or 126<ord(data[line + byte]):
-                            str_asc +='.'
-                        else:
-                            str_asc += data[line + byte]
-                if end > 15:			
-                    str_hex+="%02x" % ord(data[line + 15])
-                    if ord(data[line + 15]) < 32 or 126<ord(data[line + 15]):
-                        str_asc += '.'
-                    else:
-                        str_asc += data[line + 15]
-                    str_hex+='\n'
-                    str_asc+='\n'
-                    str_addr+='\n'
-            shl =  47 - len(str_hex)
-            if shl >0:
-                for i in range(shl/3):
-                    str_hex+='   '
-                str_hex+='  '
-                
-            buffer_addr = hd.txtdump_addr.get_buffer()
-            iter_addr = buffer_addr.get_iter_at_offset(0)
-            iter_addr_end = buffer_addr.get_iter_at_offset(buffer_addr.get_char_count())
-            buffer_addr.delete(iter_addr, iter_addr_end)
-            buffer_addr.insert_with_tags_by_name(iter_addr, str_addr,"monospace")
-            buffer_hex = hd.txtdump_hex.get_buffer()
-            iter_hex = buffer_hex.get_iter_at_offset(0)
-            iter_hex_end = buffer_hex.get_iter_at_offset(buffer_hex.get_char_count())
-            buffer_hex.delete(iter_hex, iter_hex_end)
-            buffer_hex.insert_with_tags_by_name(iter_hex, str_hex,"monospace")
-            buffer_asc = hd.txtdump_asc.get_buffer()
-            iter_asc = buffer_asc.get_iter_at_offset(0)
-            iter_asc_end = buffer_asc.get_iter_at_offset(buffer_asc.get_char_count())
-            buffer_asc.delete(iter_asc, iter_asc_end)
-            buffer_asc.insert_with_tags_by_name(iter_asc, str_asc,"monospace")
 
     def update_statusbar(self, buffer):
         # clear any previous message, underflow is allowed
@@ -440,25 +252,24 @@ class ApplicationMainWindow(gtk.Window):
         self.das[pn].set_size_request(int(self.das[pn].page.width*self.das[pn].page.zoom),int(self.das[pn].page.height*self.das[pn].page.zoom))
         self.das[pn].show()
         self.notebook.set_current_page(pn)
-        
-    def adj_changed(self,widget):
+
+    def adj_changed(self,widget,infowin):
         pn = self.notebook.get_current_page()
         if pn !=-1:
-            page = self.das[pn].page
-            data = page.file.records[int(page.hadj.value)].data
-            self.update_hexdump(data)
-## FIXME! Fix next line to support both WMF and EMF
-            if page.type == 2:
-                cmd = emfcmd.emr_ids[page.file.records[int(page.hadj.value)].emr_id]+": "+str(page.file.records[int(page.hadj.value)].str_details())
-            else:
-                cmd = wmfcmd.mr_ids[page.file.records[int(page.hadj.value)].mr_id]+": "+str(page.file.records[int(page.hadj.value)].str_details())
-            
-            self.update_statusbar(cmd)
             self.das[pn].hide()
             self.das[pn].show()
             self.notebook.set_current_page(pn)
 
-        
+            buffer_iwin = infowin.get_buffer()
+            iter_iwin = buffer_iwin.get_iter_at_offset(0)
+            iter_iwin_end = buffer_iwin.get_iter_at_offset(buffer_iwin.get_char_count())
+            buffer_iwin.delete(iter_iwin, iter_iwin_end)
+            if self.das[pn].page.hadj.value!=-1:
+                num = int(self.das[pn].page.hadj.value)-1
+                str_iwin = self.das[pn].page.objs[num].get_info()
+                buffer_iwin.insert_with_tags_by_name(iter_iwin, str_iwin,"monospace")
+
+            
     def activate_open(self,parent=None):
         if self.fname !='':
            fname = self.fname
@@ -469,34 +280,13 @@ class ApplicationMainWindow(gtk.Window):
                 input = open(fname)
                 buf = input.read()
                 [sig] = struct.unpack('i',buf[40:44])
-                print 'Signature:',sig
-##            try:
+                pg = gmodel.Page()
                 if sig == 0x464D4520:
-                    pg = mfpage.emfPage()
-                    hadjshift = 0
+                    eparser.parse(pg,buf)
                 else:
-                    pg = mfpage.wmfPage()
-                    hadjshift = 1
-                pg.file.loadmem(buf)
-                pg.parse()
+                    parser.parse(pg,buf)
                 dnum = len(self.das)
                 self.das[dnum] = pg.Face
-                nums = len(pg.cmds)
-                idx = 0
-                for i in range(nums):
-                    spct = pg.cmds[i].type
-                    if spct == 523:
-                        pg.DCs[0].x,pg.DCs[0].y = pg.cmds[i].args
-                        idx+=1
-                    if spct == 524:
-                        pg.DCs[0].Wx,pg.DCs[0].Wy = pg.cmds[i].args
-                        idx+=1
-                    if idx == 2:
-                        pg.width = abs(pg.DCs[0].Wx) ##- self.page.DCs[0].x)
-                        pg.height = abs(pg.DCs[0].Wy) ##- self.page.DCs[0].y)
-                        break
-
-                pg.zoom = min(280./pg.width,175./pg.height)## set it one time
                 scrolled = gtk.ScrolledWindow()
                 scrolled.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
                 scrolled.add_with_viewport(self.das[dnum])
@@ -506,44 +296,36 @@ class ApplicationMainWindow(gtk.Window):
                 if pos !=-1:
                     fname = fname[pos+1:]
                 pg.fname = fname
+                nums = len(self.das[dnum].page.objs)
                 label = gtk.Label(fname)
                 vbox = gtk.VBox(homogeneous=False, spacing=0)
+                self.infowin = gtk.TextView()
+                buffer_iwin = self.infowin.get_buffer()
+                buffer_iwin.create_tag("monospace", family="monospace")
+                self.scrolled2 = gtk.ScrolledWindow()
+                self.scrolled2.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+                self.scrolled2.add_with_viewport(self.infowin)
                 vpaned = gtk.VPaned()
                 vbox.pack_start(scrolled, expand=True, fill=True, padding=0)
-                self.das[dnum].page.hadj = gtk.Adjustment(0.0, 0.0,  len(self.das[dnum].page.cmds)+hadjshift, 0.1, 1.0, 1.0)
-                self.das[dnum].page.hadj.connect("value_changed", self.adj_changed)
+                self.das[dnum].page.hadj = gtk.Adjustment(0.0, 0.0, nums+1, 0.1, 1.0, 1.0)
+                self.das[dnum].page.hadj.connect("value_changed", self.adj_changed,self.infowin)
                 pg.hadj.value = nums
-                self.hscale = gtk.HScale(self.das[dnum].page.hadj)
-                self.hscale.set_digits(0)
-                vbox.pack_end(self.hscale, expand=False, fill=True, padding=0)
-                vpaned.pack2(self.das[dnum].page.hd.vbox,resize=False,shrink= True)                
+                self.das[dnum].page.hscale = gtk.HScale(self.das[dnum].page.hadj)
+                self.das[dnum].page.hscale.set_digits(0)
+                vbox.pack_end(self.das[dnum].page.hscale, expand=False, fill=True, padding=0)
+                vpaned.pack2(self.scrolled2,resize=False,shrink= True)                
                 vpaned.pack1(vbox, resize=True,shrink= False)
                 self.notebook.append_page(vpaned,label)
                 self.notebook.show_tabs = True
-		scrolled.show()
+                scrolled.show()
                 vbox.show()
                 vpaned.show()
                 self.das[dnum].show()
                 self.notebook.show()
-##            except:
-##                print 'Something wrong with a file.' ## FIXME! Bring up some dialog?
-##                pass
         return
         
     def activate_save(self,parent=None):
-        fname = self.file_save()
-        if fname:
-            pn = self.notebook.get_current_page()
-            surface = cairo.SVGSurface(fname,self.das[pn].page.width,self.das[pn].page.height)
-            ct = cairo.Context(surface)
-            cr = pangocairo.CairoContext(ct)
-            cr.save()
-            self.das[pn].render(cr,self.das[pn].page)
-            cr.restore()
-            cr.show_page()
-            surface.flush()
-            surface.finish()
-            
+        print 'Save request'
     
 def main():
     ApplicationMainWindow()

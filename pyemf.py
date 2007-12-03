@@ -2045,9 +2045,10 @@ class _EMR:
         pass
 
     # Stub class for extended pen
-    class _EXTCREATEPEN(_CREATEPALETTE):
+    class _EXTCREATEPEN(_EMR_UNKNOWN):
         emr_id=95
         emr_typedef=[
+                ('i','handle'),
                 ('i','lopnStyle'),
                 ('i','lopnWidth'),
                 ('i','lbStyle'),
@@ -2055,8 +2056,12 @@ class _EMR:
                 ('i','lbHatch'),
                 ('i','StyleCont'),
                 ('i','lpStyle')]
-        pass
 
+        def __init__(self):
+            _EMR_UNKNOWN.__init__(self)
+            
+        def hasHandle(self):
+            return True
 
 #define EMR_POLYTEXTOUTA	96
 #define EMR_POLYTEXTOUTW	97
